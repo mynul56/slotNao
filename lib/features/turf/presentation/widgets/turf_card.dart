@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/ui/widgets/loading_widget.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../domain/entities/turf_entity.dart';
 
@@ -20,13 +21,7 @@ class TurfCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppTheme.dark500, width: 0.5),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildImage(),
-            _buildInfo(),
-          ],
-        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildImage(), _buildInfo()]),
       ),
     );
   }
@@ -43,25 +38,23 @@ class TurfCard extends StatelessWidget {
                 ? CachedNetworkImage(
                     imageUrl: turf.imageUrls.first,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(color: AppTheme.dark600),
+                    placeholder: (_, __) =>
+                        const LoadingWidget(height: double.infinity, width: double.infinity, radius: BorderRadius.zero),
                     errorWidget: (_, __, ___) => Container(
                       color: AppTheme.dark600,
-                      child: const Icon(Icons.sports_soccer_rounded,
-                          color: AppTheme.dark500, size: 48),
+                      child: const Icon(Icons.sports_soccer_rounded, color: AppTheme.dark500, size: 48),
                     ),
                   )
                 : Container(
                     color: AppTheme.dark600,
-                    child: const Icon(Icons.sports_soccer_rounded,
-                        color: AppTheme.dark500, size: 48),
+                    child: const Icon(Icons.sports_soccer_rounded, color: AppTheme.dark500, size: 48),
                   ),
             // Availability badge
             Positioned(
               top: 12,
               right: 12,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: turf.isAvailable
                       ? AppTheme.primaryGreen.withValues(alpha: 0.9)
@@ -70,11 +63,7 @@ class TurfCard extends StatelessWidget {
                 ),
                 child: Text(
                   turf.isAvailable ? 'Available' : 'Full',
-                  style: const TextStyle(
-                    color: AppTheme.dark900,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: const TextStyle(color: AppTheme.dark900, fontSize: 11, fontWeight: FontWeight.w700),
                 ),
               ),
             ),
@@ -90,11 +79,7 @@ class TurfCard extends StatelessWidget {
                 ),
                 child: Text(
                   turf.type.name.titleCase,
-                  style: const TextStyle(
-                    color: AppTheme.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: const TextStyle(color: AppTheme.white, fontSize: 11, fontWeight: FontWeight.w500),
                 ),
               ),
             ),
@@ -115,11 +100,7 @@ class TurfCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   turf.name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.white,
-                  ),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.white),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -127,24 +108,13 @@ class TurfCard extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.star_rounded,
-                      color: AppTheme.accentAmber, size: 14),
+                  const Icon(Icons.star_rounded, color: AppTheme.accentAmber, size: 14),
                   const SizedBox(width: 3),
                   Text(
                     turf.rating.toStringAsFixed(1),
-                    style: const TextStyle(
-                      color: AppTheme.accentAmber,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: const TextStyle(color: AppTheme.accentAmber, fontSize: 13, fontWeight: FontWeight.w600),
                   ),
-                  Text(
-                    ' (${turf.reviewCount})',
-                    style: const TextStyle(
-                      color: AppTheme.neutralGrey,
-                      fontSize: 12,
-                    ),
-                  ),
+                  Text(' (${turf.reviewCount})', style: const TextStyle(color: AppTheme.neutralGrey, fontSize: 12)),
                 ],
               ),
             ],
@@ -152,27 +122,19 @@ class TurfCard extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.location_on_rounded,
-                  color: AppTheme.primaryGreen, size: 13),
+              const Icon(Icons.location_on_rounded, color: AppTheme.primaryGreen, size: 13),
               const SizedBox(width: 3),
               Expanded(
                 child: Text(
                   turf.address,
-                  style: const TextStyle(
-                    color: AppTheme.neutralGrey,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: AppTheme.neutralGrey, fontSize: 12),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
                 '৳${turf.pricePerHour.toInt()}/hr',
-                style: const TextStyle(
-                  color: AppTheme.primaryGreen,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 14, fontWeight: FontWeight.w700),
               ),
             ],
           ),

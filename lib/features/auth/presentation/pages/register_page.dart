@@ -4,11 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/ui/widgets/custom_button.dart';
+import '../../../../core/ui/widgets/input_field.dart';
 import '../../../../core/utils/extensions.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
-import '../widgets/auth_text_field.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -52,7 +53,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthAuthenticated) context.go(AppRoutes.home);
+        if (state is AuthAuthenticated) context.go(AppRoutes.roleHub);
         if (state is AuthFailureState) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message)),
@@ -90,20 +91,20 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: TextStyle(fontSize: 15, color: AppTheme.neutralGrey),
                   ),
                   const SizedBox(height: 36),
-                  AuthTextField(
+                  InputField(
                     controller: _nameCtrl,
                     label: 'Full Name',
                     hint: 'John Doe',
-                    prefixIcon: Icons.person_rounded,
+                    icon: Icons.person_rounded,
                     validator: (val) =>
                         val == null || val.isEmpty ? 'Name is required' : null,
                   ),
                   const SizedBox(height: 16),
-                  AuthTextField(
+                  InputField(
                     controller: _phoneCtrl,
                     label: 'Phone Number',
                     hint: '01XXXXXXXXX',
-                    prefixIcon: Icons.phone_rounded,
+                    icon: Icons.phone_rounded,
                     keyboardType: TextInputType.phone,
                     validator: (val) {
                       if (val == null || val.isEmpty) return 'Phone is required';
@@ -112,11 +113,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  AuthTextField(
+                  InputField(
                     controller: _emailCtrl,
                     label: 'Email (optional)',
                     hint: 'you@example.com',
-                    prefixIcon: Icons.email_rounded,
+                    icon: Icons.email_rounded,
                     keyboardType: TextInputType.emailAddress,
                     validator: (val) {
                       if (val != null && val.isNotEmpty && !val.isValidEmail) {
@@ -126,13 +127,13 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  AuthTextField(
+                  InputField(
                     controller: _passwordCtrl,
                     label: 'Password',
                     hint: '••••••••',
-                    prefixIcon: Icons.lock_rounded,
+                    icon: Icons.lock_rounded,
                     obscureText: _obscurePassword,
-                    suffixIcon: IconButton(
+                    suffix: IconButton(
                       icon: Icon(
                         _obscurePassword
                             ? Icons.visibility_rounded
@@ -149,11 +150,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  AuthTextField(
+                  InputField(
                     controller: _confirmPasswordCtrl,
                     label: 'Confirm Password',
                     hint: '••••••••',
-                    prefixIcon: Icons.lock_outline_rounded,
+                    icon: Icons.lock_outline_rounded,
                     obscureText: _obscurePassword,
                     validator: (val) {
                       if (val != _passwordCtrl.text) {
@@ -165,18 +166,11 @@ class _RegisterPageState extends State<RegisterPage> {
                   const SizedBox(height: 32),
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
-                      return ElevatedButton(
+                      return CustomButton(
                         onPressed: state is AuthLoading ? null : _onRegister,
-                        child: state is AuthLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppTheme.dark900,
-                                ),
-                              )
-                            : const Text('Create Account'),
+                        label: 'Create Account',
+                        icon: Icons.rocket_launch_rounded,
+                        isLoading: state is AuthLoading,
                       );
                     },
                   ),

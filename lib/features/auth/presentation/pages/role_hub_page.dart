@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/demo_media.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../auth/domain/entities/user_entity.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -61,7 +60,6 @@ class RoleHubPage extends StatelessWidget {
                 image: DemoMedia.stadiumImages.first,
                 accent: AppTheme.accentBlue,
                 onTap: () => context.go(AppRoutes.ownerHome),
-                isLocked: user != null && user.role == UserRole.player,
               ),
               const SizedBox(height: 14),
               _RoleTile(
@@ -70,7 +68,6 @@ class RoleHubPage extends StatelessWidget {
                 image: DemoMedia.playerImages.first,
                 accent: AppTheme.accentAmber,
                 onTap: () => context.go(AppRoutes.adminHome),
-                isLocked: user != null && user.role != UserRole.admin,
               ),
             ],
           );
@@ -86,7 +83,6 @@ class _RoleTile extends StatelessWidget {
   final String image;
   final Color accent;
   final VoidCallback onTap;
-  final bool isLocked;
 
   const _RoleTile({
     required this.title,
@@ -94,7 +90,6 @@ class _RoleTile extends StatelessWidget {
     required this.image,
     required this.accent,
     required this.onTap,
-    this.isLocked = false,
   });
 
   @override
@@ -102,13 +97,7 @@ class _RoleTile extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
       child: InkWell(
-        onTap: isLocked
-            ? () {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Role permission required for this workspace.')));
-              }
-            : onTap,
+        onTap: onTap,
         child: SizedBox(
           height: 180,
           child: Stack(
@@ -124,7 +113,6 @@ class _RoleTile extends StatelessWidget {
                   ),
                 ),
               ),
-              if (isLocked) Container(color: AppTheme.dark900.withValues(alpha: 0.45)),
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -138,7 +126,7 @@ class _RoleTile extends StatelessWidget {
                         border: Border.all(color: accent.withValues(alpha: 0.5)),
                       ),
                       child: Text(
-                        isLocked ? 'Restricted' : 'Open',
+                        'Open',
                         style: TextStyle(color: accent, fontWeight: FontWeight.w700, fontSize: 11),
                       ),
                     ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../domain/entities/turf_entity.dart';
@@ -17,15 +18,29 @@ class _SlotGridState extends State<SlotGrid> {
   String? _selectedSlotId;
 
   @override
+  void didUpdateWidget(covariant SlotGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_selectedSlotId == null) return;
+
+    final selected = widget.slots.where((slot) => slot.id == _selectedSlotId);
+    if (selected.isEmpty || !selected.first.isAvailable) {
+      _selectedSlotId = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Selected slot is no longer available. Please choose another slot.')));
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (widget.slots.isEmpty) {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: const Center(
-          child: Text(
-            'No slots available for this date',
-            style: TextStyle(color: AppTheme.neutralGrey),
-          ),
+          child: Text('No slots available for this date', style: TextStyle(color: AppTheme.neutralGrey)),
         ),
       );
     }
@@ -46,24 +61,22 @@ class _SlotGridState extends State<SlotGrid> {
             final isSelected = slot.id == _selectedSlotId;
             final isAvailable = slot.isAvailable;
             return GestureDetector(
-              onTap: isAvailable
-                  ? () => setState(() => _selectedSlotId = slot.id)
-                  : null,
+              onTap: isAvailable ? () => setState(() => _selectedSlotId = slot.id) : null,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppTheme.primaryGreen
                       : isAvailable
-                          ? AppTheme.dark600
-                          : AppTheme.dark700,
+                      ? AppTheme.dark600
+                      : AppTheme.dark700,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: isSelected
                         ? AppTheme.primaryGreen
                         : isAvailable
-                            ? AppTheme.dark500
-                            : AppTheme.dark600,
+                        ? AppTheme.dark500
+                        : AppTheme.dark600,
                   ),
                 ),
                 child: Column(
@@ -77,18 +90,11 @@ class _SlotGridState extends State<SlotGrid> {
                         color: isSelected
                             ? AppTheme.dark900
                             : isAvailable
-                                ? AppTheme.white
-                                : AppTheme.dark500,
+                            ? AppTheme.white
+                            : AppTheme.dark500,
                       ),
                     ),
-                    if (!isAvailable)
-                      const Text(
-                        'Booked',
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: AppTheme.dark500,
-                        ),
-                      ),
+                    if (!isAvailable) const Text('Booked', style: TextStyle(fontSize: 9, color: AppTheme.dark500)),
                   ],
                 ),
               ),
@@ -100,12 +106,17 @@ class _SlotGridState extends State<SlotGrid> {
           ElevatedButton.icon(
             onPressed: () {
               final slot = widget.slots.firstWhere((s) => s.id == _selectedSlotId);
+              if (!slot.isAvailable) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('This slot just got booked. Pick another one.')));
+                setState(() => _selectedSlotId = null);
+                return;
+              }
               context.push('/home/turf/${widget.turfId}/book', extra: slot);
             },
             icon: const Icon(Icons.sports_soccer_rounded, size: 18),
-            label: Text(
-              'Book Selected Slot  •  ৳${widget.slots.firstWhere((s) => s.id == _selectedSlotId).price.toInt()}',
-            ),
+            label: Text('Book Selected Slot  •  ৳${widget.slots.firstWhere((s) => s.id == _selectedSlotId).price.toInt()}'),
           ),
         ],
       ],

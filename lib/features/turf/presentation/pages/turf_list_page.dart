@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/demo_media.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../injection_container.dart' as di;
@@ -17,10 +19,7 @@ class TurfListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => di.sl<TurfBloc>()..add(const TurfLoadRequested()),
-      child: const _TurfListView(),
-    );
+    return BlocProvider(create: (_) => di.sl<TurfBloc>()..add(const TurfLoadRequested()), child: const _TurfListView());
   }
 }
 
@@ -44,8 +43,7 @@ class _TurfListViewState extends State<_TurfListView> {
   void _onScroll() {
     final bloc = context.read<TurfBloc>();
     final state = bloc.state;
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200 &&
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
         state is TurfListLoaded &&
         state.hasMore) {
       _currentPage++;
@@ -69,6 +67,7 @@ class _TurfListViewState extends State<_TurfListView> {
           _buildSliverAppBar(context),
           _buildSearchBar(),
           _buildCategoryChips(),
+          _buildFindPlayersSection(),
           _buildTurfList(),
         ],
       ),
@@ -89,19 +88,11 @@ class _TurfListViewState extends State<_TurfListView> {
           children: [
             Text(
               'Good ${_greeting()} 👋',
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppTheme.neutralGrey,
-                fontWeight: FontWeight.w400,
-              ),
+              style: const TextStyle(fontSize: 12, color: AppTheme.neutralGrey, fontWeight: FontWeight.w400),
             ),
             const Text(
               'Find Your Turf',
-              style: TextStyle(
-                fontSize: 18,
-                color: AppTheme.white,
-                fontWeight: FontWeight.w700,
-              ),
+              style: TextStyle(fontSize: 18, color: AppTheme.white, fontWeight: FontWeight.w700),
             ),
           ],
         ),
@@ -124,10 +115,7 @@ class _TurfListViewState extends State<_TurfListView> {
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-        child: SearchBarWidget(
-          onChanged: (q) =>
-              context.read<TurfBloc>().add(TurfSearchRequested(q)),
-        ),
+        child: SearchBarWidget(onChanged: (q) => context.read<TurfBloc>().add(TurfSearchRequested(q))),
       ),
     );
   }
@@ -163,9 +151,7 @@ class _TurfListViewState extends State<_TurfListView> {
       builder: (context, state) {
         if (state is TurfLoading) {
           return const SliverFillRemaining(
-            child: Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryGreen),
-            ),
+            child: Center(child: CircularProgressIndicator(color: AppTheme.primaryGreen)),
           );
         }
 
@@ -175,16 +161,12 @@ class _TurfListViewState extends State<_TurfListView> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.error_outline_rounded,
-                      color: AppTheme.errorRed, size: 48),
+                  const Icon(Icons.error_outline_rounded, color: AppTheme.errorRed, size: 48),
                   const SizedBox(height: 12),
-                  Text(state.message,
-                      style: const TextStyle(color: AppTheme.neutralGrey)),
+                  Text(state.message, style: const TextStyle(color: AppTheme.neutralGrey)),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => context
-                        .read<TurfBloc>()
-                        .add(const TurfLoadRequested()),
+                    onPressed: () => context.read<TurfBloc>().add(const TurfLoadRequested()),
                     child: const Text('Retry'),
                   ),
                 ],
@@ -205,11 +187,9 @@ class _TurfListViewState extends State<_TurfListView> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.sports_soccer_rounded,
-                      color: AppTheme.dark500, size: 64),
+                  Icon(Icons.sports_soccer_rounded, color: AppTheme.dark500, size: 64),
                   SizedBox(height: 12),
-                  Text('No turfs found',
-                      style: TextStyle(color: AppTheme.neutralGrey)),
+                  Text('No turfs found', style: TextStyle(color: AppTheme.neutralGrey)),
                 ],
               ),
             ),
@@ -225,6 +205,65 @@ class _TurfListViewState extends State<_TurfListView> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildFindPlayersSection() {
+    return SliverToBoxAdapter(
+      child: SizedBox(
+        height: 166,
+        child: ListView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+          scrollDirection: Axis.horizontal,
+          itemCount: DemoMedia.playerImages.length,
+          itemBuilder: (_, i) {
+            return Container(
+              width: 250,
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppTheme.dark500),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CachedNetworkImage(imageUrl: DemoMedia.playerImages[i], fit: BoxFit.cover),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [AppTheme.dark900.withValues(alpha: 0.92), AppTheme.dark900.withValues(alpha: 0.25)],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            i == 0 ? 'Find Players Nearby' : 'Join Community Match',
+                            style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.w700, fontSize: 16),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Skill-based teams • Instant join',
+                            style: TextStyle(color: AppTheme.lightGrey, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 

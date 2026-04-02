@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../injection_container.dart' as di;
+import '../../../turf/domain/entities/turf_entity.dart';
 import '../bloc/booking_bloc.dart';
 import '../bloc/booking_event.dart';
 import '../bloc/booking_state.dart';
@@ -31,10 +33,19 @@ class _BookingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectedSlot = slot is SlotEntity ? slot as SlotEntity : null;
+
     return BlocListener<BookingBloc, BookingState>(
       listener: (context, state) {
         if (state is BookingCreated) {
-          context.pushReplacement('/home/bookings/${state.booking.id}/confirm');
+          context.push(
+            AppRoutes.payment,
+            extra: {
+              'bookingId': state.booking.id,
+              'amount': state.booking.totalAmount,
+              'slotStart': state.booking.slotStart.toIso8601String(),
+            },
+          );
         }
         if (state is BookingError) {
           ScaffoldMessenger.of(
@@ -51,6 +62,28 @@ class _BookingView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildSummaryCard(),
+              const SizedBox(height: 24),
+              if (selectedSlot == null || !selectedSlot.isAvailable)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.errorRed.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.errorRed.withValues(alpha: 0.5)),
+                  ),
+                  child: const Text(
+                    'This slot is not available anymore. Please go back and pick a live slot.',
+                    style: TextStyle(color: AppTheme.white),
+                  ),
+                ),
+              if (selectedSlot != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  'Selected: ${selectedSlot.startTime.toDisplayDate()}  ${selectedSlot.startTime.toDisplayTime()} - ${selectedSlot.endTime.toDisplayTime()}',
+                  style: const TextStyle(color: AppTheme.neutralGrey),
+                ),
+              ],
               const SizedBox(height: 24),
               const Text(
                 'Payment Method',
@@ -69,6 +102,11 @@ class _BookingView extends StatelessWidget {
   }
 
   Widget _buildSummaryCard() {
+    final selectedSlot = slot is SlotEntity ? slot as SlotEntity : null;
+    final start = selectedSlot?.startTime ?? DateTime.now();
+    final end = selectedSlot?.endTime ?? DateTime.now().add(const Duration(hours: 1));
+    final amount = selectedSlot?.price.toInt() ?? 500;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -86,27 +124,24 @@ class _BookingView extends StatelessWidget {
           const SizedBox(height: 16),
           const Divider(color: AppTheme.dark500),
           const SizedBox(height: 12),
-          _summaryRow('Date', DateTime.now().toDisplayDate()),
+          _summaryRow('Date', start.toDisplayDate()),
           const SizedBox(height: 8),
-          _summaryRow(
-            'Time',
-            '${DateTime.now().toDisplayTime()} — ${DateTime.now().add(const Duration(hours: 1)).toDisplayTime()}',
-          ),
+          _summaryRow('Time', '${start.toDisplayTime()} — ${end.toDisplayTime()}'),
           const SizedBox(height: 8),
-          _summaryRow('Duration', '1 hour'),
+          _summaryRow('Duration', '${end.difference(start).inHours} hour'),
           const SizedBox(height: 16),
           const Divider(color: AppTheme.dark500),
           const SizedBox(height: 12),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              const Text(
                 'Total',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.white),
               ),
               Text(
-                '৳500',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.primaryGreen),
+                '৳$amount',
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.primaryGreen),
               ),
             ],
           ),
@@ -166,16 +201,18 @@ class _BookingView extends StatelessWidget {
   Widget _buildConfirmButton(BuildContext context) {
     return BlocBuilder<BookingBloc, BookingState>(
       builder: (context, state) {
+        final selectedSlot = slot is SlotEntity ? slot as SlotEntity : null;
+
         return ElevatedButton(
-          onPressed: state is BookingLoading
+          onPressed: state is BookingLoading || selectedSlot == null || !selectedSlot.isAvailable
               ? null
               : () {
                   context.read<BookingBloc>().add(
                     BookingCreateRequested(
                       turfId: turfId,
-                      slotId: 'slot_id_placeholder',
-                      slotStart: DateTime.now(),
-                      slotEnd: DateTime.now().add(const Duration(hours: 1)),
+                      slotId: selectedSlot.id,
+                      slotStart: selectedSlot.startTime,
+                      slotEnd: selectedSlot.endTime,
                     ),
                   );
                 },
@@ -185,7 +222,7 @@ class _BookingView extends StatelessWidget {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.dark900),
                 )
-              : const Text('Confirm & Pay'),
+              : const Text('Continue To Payment'),
         );
       },
     );

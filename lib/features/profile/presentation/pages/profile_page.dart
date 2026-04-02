@@ -17,10 +17,7 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => di.sl<ProfileBloc>()..add(const ProfileLoadRequested()),
-      child: const _ProfileView(),
-    );
+    return BlocProvider(create: (_) => di.sl<ProfileBloc>()..add(const ProfileLoadRequested()), child: const _ProfileView());
   }
 }
 
@@ -34,19 +31,12 @@ class _ProfileView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Profile'),
         backgroundColor: AppTheme.dark800,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_rounded),
-            onPressed: () {},
-          ),
-        ],
+        actions: [IconButton(icon: const Icon(Icons.edit_rounded), onPressed: () {})],
       ),
       body: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
           if (state is ProfileLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryGreen),
-            );
+            return const Center(child: CircularProgressIndicator(color: AppTheme.primaryGreen));
           }
           if (state is ProfileLoaded) {
             final p = state.profile;
@@ -63,8 +53,7 @@ class _ProfileView extends StatelessWidget {
           }
           if (state is ProfileError) {
             return Center(
-              child: Text(state.message,
-                  style: const TextStyle(color: AppTheme.errorRed)),
+              child: Text(state.message, style: const TextStyle(color: AppTheme.errorRed)),
             );
           }
           return const SizedBox.shrink();
@@ -73,8 +62,7 @@ class _ProfileView extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(
-      String? avatarUrl, String name, String phone, String role) {
+  Widget _buildHeader(String? avatarUrl, String name, String phone, String role) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
       decoration: const BoxDecoration(
@@ -89,17 +77,11 @@ class _ProfileView extends StatelessWidget {
           CircleAvatar(
             radius: 40,
             backgroundColor: AppTheme.dark600,
-            backgroundImage: avatarUrl != null
-                ? CachedNetworkImageProvider(avatarUrl)
-                : null,
+            backgroundImage: avatarUrl != null ? CachedNetworkImageProvider(avatarUrl) : null,
             child: avatarUrl == null
                 ? Text(
                     name.isNotEmpty ? name[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      fontSize: 28,
-                      color: AppTheme.primaryGreen,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: const TextStyle(fontSize: 28, color: AppTheme.primaryGreen, fontWeight: FontWeight.w700),
                   )
                 : null,
           ),
@@ -110,24 +92,13 @@ class _ProfileView extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.white,
-                  ),
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.white),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  phone,
-                  style: const TextStyle(
-                    color: AppTheme.neutralGrey,
-                    fontSize: 14,
-                  ),
-                ),
+                Text(phone, style: const TextStyle(color: AppTheme.neutralGrey, fontSize: 14)),
                 const SizedBox(height: 6),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryGreen.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
@@ -166,8 +137,7 @@ class _ProfileView extends StatelessWidget {
           Container(width: 1, height: 40, color: AppTheme.dark500),
           _statItem('Completed', '$completed', Icons.check_circle_rounded),
           Container(width: 1, height: 40, color: AppTheme.dark500),
-          _statItem('Cancelled', '${total - completed}',
-              Icons.cancel_rounded),
+          _statItem('Cancelled', '${total - completed}', Icons.cancel_rounded),
         ],
       ),
     );
@@ -180,11 +150,7 @@ class _ProfileView extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.white,
-          ),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.white),
         ),
         Text(label, style: const TextStyle(color: AppTheme.neutralGrey, fontSize: 12)),
       ],
@@ -193,26 +159,11 @@ class _ProfileView extends StatelessWidget {
 
   Widget _buildMenuSection(BuildContext context) {
     final items = [
-      _MenuItem(
-        icon: Icons.calendar_month_rounded,
-        title: 'My Bookings',
-        onTap: () => context.push(AppRoutes.myBookings),
-      ),
-      _MenuItem(
-        icon: Icons.notifications_rounded,
-        title: 'Notifications',
-        onTap: () {},
-      ),
-      _MenuItem(
-        icon: Icons.help_outline_rounded,
-        title: 'Help & Support',
-        onTap: () {},
-      ),
-      _MenuItem(
-        icon: Icons.privacy_tip_rounded,
-        title: 'Privacy Policy',
-        onTap: () {},
-      ),
+      _MenuItem(icon: Icons.calendar_month_rounded, title: 'My Bookings', onTap: () => context.push(AppRoutes.myBookings)),
+      _MenuItem(icon: Icons.swap_horiz_rounded, title: 'Switch Workspace', onTap: () => context.go(AppRoutes.roleHub)),
+      _MenuItem(icon: Icons.notifications_rounded, title: 'Notifications', onTap: () {}),
+      _MenuItem(icon: Icons.help_outline_rounded, title: 'Help & Support', onTap: () {}),
+      _MenuItem(icon: Icons.privacy_tip_rounded, title: 'Privacy Policy', onTap: () {}),
       _MenuItem(
         icon: Icons.logout_rounded,
         title: 'Logout',
@@ -233,21 +184,12 @@ class _ProfileView extends StatelessWidget {
       itemBuilder: (_, i) {
         final item = items[i];
         return ListTile(
-          leading: Icon(
-            item.icon,
-            color: item.isDestructive ? AppTheme.errorRed : AppTheme.neutralGrey,
-          ),
+          leading: Icon(item.icon, color: item.isDestructive ? AppTheme.errorRed : AppTheme.neutralGrey),
           title: Text(
             item.title,
-            style: TextStyle(
-              color: item.isDestructive ? AppTheme.errorRed : AppTheme.white,
-              fontWeight: FontWeight.w500,
-            ),
+            style: TextStyle(color: item.isDestructive ? AppTheme.errorRed : AppTheme.white, fontWeight: FontWeight.w500),
           ),
-          trailing: item.isDestructive
-              ? null
-              : const Icon(Icons.chevron_right_rounded,
-                  color: AppTheme.dark500),
+          trailing: item.isDestructive ? null : const Icon(Icons.chevron_right_rounded, color: AppTheme.dark500),
           onTap: item.onTap,
         );
       },
@@ -261,10 +203,5 @@ class _MenuItem {
   final VoidCallback onTap;
   final bool isDestructive;
 
-  const _MenuItem({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.isDestructive = false,
-  });
+  const _MenuItem({required this.icon, required this.title, required this.onTap, this.isDestructive = false});
 }
