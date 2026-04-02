@@ -40,13 +40,13 @@ class _RegisterPageState extends State<RegisterPage> {
   void _onRegister() {
     if (!_formKey.currentState!.validate()) return;
     context.read<AuthBloc>().add(
-          AuthRegisterRequested(
-            name: _nameCtrl.text.trim(),
-            phone: _phoneCtrl.text.trim(),
-            email: _emailCtrl.text.trim(),
-            password: _passwordCtrl.text,
-          ),
-        );
+      AuthRegisterRequested(
+        name: _nameCtrl.text.trim(),
+        phone: _phoneCtrl.text.trim(),
+        email: _emailCtrl.text.trim(),
+        password: _passwordCtrl.text,
+      ),
+    );
   }
 
   @override
@@ -55,19 +55,14 @@ class _RegisterPageState extends State<RegisterPage> {
       listener: (context, state) {
         if (state is AuthAuthenticated) context.go(AppRoutes.roleHub);
         if (state is AuthFailureState) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Scaffold(
         backgroundColor: AppTheme.dark900,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_rounded),
-            onPressed: () => context.pop(),
-          ),
+          leading: IconButton(icon: const Icon(Icons.arrow_back_ios_rounded), onPressed: () => context.pop()),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -79,11 +74,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 children: [
                   const Text(
                     'Create Account',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.white,
-                    ),
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: AppTheme.white),
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -96,8 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     label: 'Full Name',
                     hint: 'John Doe',
                     icon: Icons.person_rounded,
-                    validator: (val) =>
-                        val == null || val.isEmpty ? 'Name is required' : null,
+                    validator: (val) => val == null || val.isEmpty ? 'Name is required' : null,
                   ),
                   const SizedBox(height: 16),
                   InputField(
@@ -135,13 +125,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     obscureText: _obscurePassword,
                     suffix: IconButton(
                       icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_rounded
-                            : Icons.visibility_off_rounded,
+                        _obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
                         color: AppTheme.neutralGrey,
                       ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
                     validator: (val) {
                       if (val == null || val.isEmpty) return 'Password is required';
@@ -179,18 +166,12 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
-                          'Already have an account? ',
-                          style: TextStyle(color: AppTheme.neutralGrey),
-                        ),
+                        const Text('Already have an account? ', style: TextStyle(color: AppTheme.neutralGrey)),
                         GestureDetector(
                           onTap: () => context.pop(),
                           child: const Text(
                             'Login',
-                            style: TextStyle(
-                              color: AppTheme.primaryGreen,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],

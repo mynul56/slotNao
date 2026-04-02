@@ -35,12 +35,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _onLogin() {
     if (!_formKey.currentState!.validate()) return;
-    context.read<AuthBloc>().add(
-          AuthLoginRequested(
-            phone: _phoneCtrl.text.trim(),
-            password: _passwordCtrl.text,
-          ),
-        );
+    context.read<AuthBloc>().add(AuthLoginRequested(phone: _phoneCtrl.text.trim(), password: _passwordCtrl.text));
   }
 
   @override
@@ -49,9 +44,7 @@ class _LoginPageState extends State<LoginPage> {
       listener: (context, state) {
         if (state is AuthAuthenticated) context.go(AppRoutes.roleHub);
         if (state is AuthFailureState) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Scaffold(
@@ -59,10 +52,7 @@ class _LoginPageState extends State<LoginPage> {
         body: Stack(
           children: [
             Positioned.fill(
-              child: CachedNetworkImage(
-                imageUrl: DemoMedia.stadiumImages.last,
-                fit: BoxFit.cover,
-              ),
+              child: CachedNetworkImage(imageUrl: DemoMedia.stadiumImages.last, fit: BoxFit.cover),
             ),
             Positioned.fill(
               child: DecoratedBox(
@@ -70,10 +60,7 @@ class _LoginPageState extends State<LoginPage> {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      AppTheme.dark900.withValues(alpha: 0.35),
-                      AppTheme.dark900.withValues(alpha: 0.95),
-                    ],
+                    colors: [AppTheme.dark900.withValues(alpha: 0.35), AppTheme.dark900.withValues(alpha: 0.95)],
                   ),
                 ),
               ),
@@ -99,71 +86,65 @@ class _LoginPageState extends State<LoginPage> {
                         child: Column(
                           children: [
                             InputField(
-                    controller: _phoneCtrl,
-                    label: 'Phone Number',
-                    hint: '01XXXXXXXXX',
-                    icon: Icons.phone_rounded,
-                    keyboardType: TextInputType.phone,
-                    validator: (val) {
-                      if (val == null || val.isEmpty) return 'Phone is required';
-                      if (!val.isValidBangladeshPhone) {
-                        return 'Enter a valid BD phone number';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
+                              controller: _phoneCtrl,
+                              label: 'Phone Number',
+                              hint: '01XXXXXXXXX',
+                              icon: Icons.phone_rounded,
+                              keyboardType: TextInputType.phone,
+                              validator: (val) {
+                                if (val == null || val.isEmpty) return 'Phone is required';
+                                if (!val.isValidBangladeshPhone) {
+                                  return 'Enter a valid BD phone number';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
                             InputField(
-                    controller: _passwordCtrl,
-                    label: 'Password',
-                    hint: '••••••••',
-                    icon: Icons.lock_rounded,
-                    obscureText: _obscurePassword,
-                    suffix: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_rounded
-                            : Icons.visibility_off_rounded,
-                        color: AppTheme.neutralGrey,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                    validator: (val) {
-                      if (val == null || val.isEmpty) return 'Password is required';
-                      if (!val.isValidPassword) return 'Minimum 8 characters';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {},
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(color: AppTheme.primaryGreen),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  BlocBuilder<AuthBloc, AuthState>(
-                    builder: (context, state) {
-                      return CustomButton(
-                        onPressed: state is AuthLoading ? null : _onLogin,
-                        label: 'Login',
-                        icon: Icons.login_rounded,
-                        isLoading: state is AuthLoading,
-                      );
-                    },
-                  ),
+                              controller: _passwordCtrl,
+                              label: 'Password',
+                              hint: '••••••••',
+                              icon: Icons.lock_rounded,
+                              obscureText: _obscurePassword,
+                              suffix: IconButton(
+                                icon: Icon(
+                                  _obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                                  color: AppTheme.neutralGrey,
+                                ),
+                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              ),
+                              validator: (val) {
+                                if (val == null || val.isEmpty) return 'Password is required';
+                                if (!val.isValidPassword) return 'Minimum 8 characters';
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () {},
+                                child: const Text('Forgot Password?', style: TextStyle(color: AppTheme.primaryGreen)),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            BlocBuilder<AuthBloc, AuthState>(
+                              builder: (context, state) {
+                                return CustomButton(
+                                  onPressed: state is AuthLoading ? null : _onLogin,
+                                  label: 'Login',
+                                  icon: Icons.login_rounded,
+                                  isLoading: state is AuthLoading,
+                                );
+                              },
+                            ),
                           ],
                         ),
                       ),
-                  const SizedBox(height: 24),
-                  _buildDivider(),
-                  const SizedBox(height: 24),
-                  _buildRegisterLink(),
+                      const SizedBox(height: 24),
+                      _buildDivider(),
+                      const SizedBox(height: 24),
+                      _buildRegisterLink(),
                     ],
                   ),
                 ),
@@ -185,34 +166,17 @@ class _LoginPageState extends State<LoginPage> {
           decoration: BoxDecoration(
             color: AppTheme.primaryGreen,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primaryGreen.withValues(alpha: 0.3),
-                blurRadius: 20,
-                spreadRadius: 2,
-              ),
-            ],
+            boxShadow: [BoxShadow(color: AppTheme.primaryGreen.withValues(alpha: 0.3), blurRadius: 20, spreadRadius: 2)],
           ),
-          child: const Icon(
-            Icons.sports_soccer_rounded,
-            color: AppTheme.dark900,
-            size: 30,
-          ),
+          child: const Icon(Icons.sports_soccer_rounded, color: AppTheme.dark900, size: 30),
         ),
         const SizedBox(height: 24),
         const Text(
           'Welcome Back! 👋',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.white,
-          ),
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: AppTheme.white),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Sign in to book your turf slot',
-          style: TextStyle(fontSize: 15, color: AppTheme.neutralGrey),
-        ),
+        const Text('Sign in to book your turf slot', style: TextStyle(fontSize: 15, color: AppTheme.neutralGrey)),
       ],
     );
   }
@@ -223,13 +187,7 @@ class _LoginPageState extends State<LoginPage> {
         const Expanded(child: Divider(color: AppTheme.dark500)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'or',
-            style: TextStyle(
-              color: AppTheme.neutralGrey.withValues(alpha: 0.7),
-              fontSize: 13,
-            ),
-          ),
+          child: Text('or', style: TextStyle(color: AppTheme.neutralGrey.withValues(alpha: 0.7), fontSize: 13)),
         ),
         const Expanded(child: Divider(color: AppTheme.dark500)),
       ],
@@ -241,18 +199,12 @@ class _LoginPageState extends State<LoginPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            "Don't have an account? ",
-            style: TextStyle(color: AppTheme.neutralGrey),
-          ),
+          const Text("Don't have an account? ", style: TextStyle(color: AppTheme.neutralGrey)),
           GestureDetector(
             onTap: () => context.push(AppRoutes.register),
             child: const Text(
               'Register',
-              style: TextStyle(
-                color: AppTheme.primaryGreen,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.w600),
             ),
           ),
         ],

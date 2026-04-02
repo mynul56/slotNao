@@ -179,13 +179,9 @@ class _GatewayTile extends StatelessWidget {
                 style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.w600),
               ),
             ),
-            Radio<PaymentGateway>(
-              value: value,
-              groupValue: groupValue,
-              activeColor: AppTheme.primaryGreen,
-              onChanged: (v) {
-                if (v != null) onChanged(v);
-              },
+            Icon(
+              groupValue == value ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+              color: groupValue == value ? AppTheme.primaryGreen : AppTheme.neutralGrey,
             ),
           ],
         ),

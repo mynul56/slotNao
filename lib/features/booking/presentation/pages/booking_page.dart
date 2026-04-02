@@ -192,7 +192,10 @@ class _BookingView extends StatelessWidget {
             style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.w500),
           ),
           const Spacer(),
-          Radio<String>(value: name, groupValue: 'bKash', onChanged: (_) {}, activeColor: AppTheme.primaryGreen),
+          Icon(
+            name == 'bKash' ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+            color: name == 'bKash' ? AppTheme.primaryGreen : AppTheme.neutralGrey,
+          ),
         ],
       ),
     );
