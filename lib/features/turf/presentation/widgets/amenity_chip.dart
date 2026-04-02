@@ -1,0 +1,56 @@
+import 'package:flutter/material.dart';
+import '../../../../core/theme/app_theme.dart';
+
+class AmenityChip extends StatelessWidget {
+  final String label;
+  const AmenityChip({super.key, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.dark600,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.dark500, width: 0.8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(_iconForAmenity(label), color: AppTheme.primaryGreen, size: 14),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppTheme.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _iconForAmenity(String amenity) {
+    final lower = amenity.toLowerCase();
+    if (lower.contains('park')) return Icons.local_parking_rounded;
+    if (lower.contains('shower') || lower.contains('changing')) {
+      return Icons.shower_rounded;
+    }
+    if (lower.contains('light') || lower.contains('flood')) {
+      return Icons.lightbulb_rounded;
+    }
+    if (lower.contains('cafe') || lower.contains('canteen')) {
+      return Icons.local_cafe_rounded;
+    }
+    if (lower.contains('wifi')) return Icons.wifi_rounded;
+    if (lower.contains('cctv') || lower.contains('security')) {
+      return Icons.security_rounded;
+    }
+    if (lower.contains('toilet') || lower.contains('wash')) {
+      return Icons.wc_rounded;
+    }
+    return Icons.check_circle_rounded;
+  }
+}
