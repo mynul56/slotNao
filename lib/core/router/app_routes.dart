@@ -4,9 +4,13 @@ class AppRoutes {
   AppRoutes._();
 
   static const String splash = '/';
+  static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String register = '/register';
+  static const String roleHub = '/role-hub';
   static const String home = '/home';
+  static const String ownerHome = '/owner';
+  static const String adminHome = '/admin';
   static const String turfDetail = '/home/turf/:id';
   static const String booking = '/home/turf/:id/book';
   static const String myBookings = '/home/bookings';

@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../injection_container.dart' as di;
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_state.dart';
 
@@ -19,6 +23,7 @@ class _SplashPageState extends State<SplashPage>
   late AnimationController _controller;
   late Animation<double> _scaleAnim;
   late Animation<double> _fadeAnim;
+  late final StreamSubscription<AuthState> _authSub;
 
   @override
   void initState() {
@@ -35,15 +40,23 @@ class _SplashPageState extends State<SplashPage>
     );
     _controller.forward();
 
-    context.read<AuthBloc>().stream.listen((state) {
+    _authSub = context.read<AuthBloc>().stream.listen((state) async {
       if (!mounted) return;
-      if (state is AuthAuthenticated) context.go(AppRoutes.home);
-      if (state is AuthUnauthenticated) context.go(AppRoutes.login);
+      if (state is AuthAuthenticated) {
+        context.go(AppRoutes.roleHub);
+        return;
+      }
+      if (state is AuthUnauthenticated) {
+        final prefs = di.sl<SharedPreferences>();
+        final seenOnboarding = prefs.getBool('onboarding_seen') ?? false;
+        context.go(seenOnboarding ? AppRoutes.login : AppRoutes.onboarding);
+      }
     });
   }
 
   @override
   void dispose() {
+    _authSub.cancel();
     _controller.dispose();
     super.dispose();
   }
