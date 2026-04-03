@@ -141,7 +141,9 @@ class _LoginPageState extends State<LoginPage> {
                                     BlocBuilder<AuthBloc, AuthState>(
                                       builder: (context, state) {
                                         return CustomButton(
-                                          onPressed: state is AuthLoading ? null : (_otpRequested ? _onVerifyOtp : _onRequestOtp),
+                                          onPressed: state is AuthLoading
+                                              ? null
+                                              : (_otpRequested ? _onVerifyOtp : _onRequestOtp),
                                           label: _otpRequested ? 'Verify OTP & Login' : 'Send OTP',
                                           icon: _otpRequested ? Icons.verified_user_rounded : Icons.send_rounded,
                                           isLoading: state is AuthLoading,
