@@ -23,19 +23,24 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _phoneCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
-  bool _obscurePassword = true;
+  final _otpCtrl = TextEditingController();
+  bool _otpRequested = false;
 
   @override
   void dispose() {
     _phoneCtrl.dispose();
-    _passwordCtrl.dispose();
+    _otpCtrl.dispose();
     super.dispose();
   }
 
-  void _onLogin() {
+  void _onRequestOtp() {
     if (!_formKey.currentState!.validate()) return;
-    context.read<AuthBloc>().add(AuthLoginRequested(phone: _phoneCtrl.text.trim(), password: _passwordCtrl.text));
+    context.read<AuthBloc>().add(AuthRequestOtpRequested(phone: _phoneCtrl.text.trim()));
+  }
+
+  void _onVerifyOtp() {
+    if (!_formKey.currentState!.validate()) return;
+    context.read<AuthBloc>().add(AuthLoginRequested(phone: _phoneCtrl.text.trim(), otp: _otpCtrl.text.trim()));
   }
 
   @override
@@ -43,6 +48,10 @@ class _LoginPageState extends State<LoginPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) context.go(AppRoutes.roleHub);
+        if (state is AuthOtpRequested) {
+          setState(() => _otpRequested = true);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+        }
         if (state is AuthFailureState) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
         }
@@ -91,6 +100,7 @@ class _LoginPageState extends State<LoginPage> {
                               hint: '01XXXXXXXXX',
                               icon: Icons.phone_rounded,
                               keyboardType: TextInputType.phone,
+                              readOnly: _otpRequested,
                               validator: (val) {
                                 if (val == null || val.isEmpty) return 'Phone is required';
                                 if (!val.isValidBangladeshPhone) {
@@ -100,44 +110,39 @@ class _LoginPageState extends State<LoginPage> {
                               },
                             ),
                             const SizedBox(height: 16),
-                            InputField(
-                              controller: _passwordCtrl,
-                              label: 'Password',
-                              hint: '••••••••',
-                              icon: Icons.lock_rounded,
-                              obscureText: _obscurePassword,
-                              suffix: IconButton(
-                                icon: Icon(
-                                  _obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
-                                  color: AppTheme.neutralGrey,
-                                ),
-                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                            if (_otpRequested)
+                              InputField(
+                                controller: _otpCtrl,
+                                label: 'OTP Code',
+                                hint: '6-digit OTP',
+                                icon: Icons.sms_rounded,
+                                keyboardType: TextInputType.number,
+                                validator: (val) {
+                                  if (!_otpRequested) return null;
+                                  if (val == null || val.trim().isEmpty) return 'OTP is required';
+                                  if (val.trim().length != 6) return 'OTP must be 6 digits';
+                                  return null;
+                                },
                               ),
-                              validator: (val) {
-                                if (val == null || val.isEmpty) return 'Password is required';
-                                if (!val.isValidPassword) return 'Minimum 8 characters';
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed: () {},
-                                child: const Text('Forgot Password?', style: TextStyle(color: AppTheme.primaryGreen)),
-                              ),
-                            ),
                             const SizedBox(height: 24),
                             BlocBuilder<AuthBloc, AuthState>(
                               builder: (context, state) {
                                 return CustomButton(
-                                  onPressed: state is AuthLoading ? null : _onLogin,
-                                  label: 'Login',
-                                  icon: Icons.login_rounded,
+                                  onPressed: state is AuthLoading ? null : (_otpRequested ? _onVerifyOtp : _onRequestOtp),
+                                  label: _otpRequested ? 'Verify OTP & Login' : 'Send OTP',
+                                  icon: _otpRequested ? Icons.verified_user_rounded : Icons.send_rounded,
                                   isLoading: state is AuthLoading,
                                 );
                               },
                             ),
+                            if (_otpRequested)
+                              TextButton(
+                                onPressed: () {
+                                  _otpCtrl.clear();
+                                  _onRequestOtp();
+                                },
+                                child: const Text('Resend OTP', style: TextStyle(color: AppTheme.primaryGreen)),
+                              ),
                           ],
                         ),
                       ),
@@ -176,7 +181,10 @@ class _LoginPageState extends State<LoginPage> {
           style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: AppTheme.white),
         ),
         const SizedBox(height: 8),
-        const Text('Sign in to book your turf slot', style: TextStyle(fontSize: 15, color: AppTheme.neutralGrey)),
+        const Text(
+          'Sign in with your phone OTP to book your turf slot',
+          style: TextStyle(fontSize: 15, color: AppTheme.neutralGrey),
+        ),
       ],
     );
   }

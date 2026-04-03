@@ -7,7 +7,8 @@ import '../../../../core/network/api_error_parser.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDatasource {
-  Future<UserModel> login({required String phone, required String password});
+  Future<void> requestOtp({required String phone});
+  Future<UserModel> login({required String phone, required String otp});
   Future<UserModel> register({required String name, required String phone, required String email, required String password});
   Future<void> logout();
   Future<UserModel> getCurrentUser();
@@ -22,9 +23,18 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       _secureStorage = secureStorage;
 
   @override
-  Future<UserModel> login({required String phone, required String password}) async {
+  Future<void> requestOtp({required String phone}) async {
     try {
-      final response = await _dio.post(ApiEndpoints.login, data: {'phone': phone, 'password': password});
+      await _dio.post(ApiEndpoints.requestOtp, data: {'phone': phone});
+    } on DioException catch (e) {
+      throw ApiErrorParser.parse(e);
+    }
+  }
+
+  @override
+  Future<UserModel> login({required String phone, required String otp}) async {
+    try {
+      final response = await _dio.post(ApiEndpoints.login, data: {'phone': phone, 'otp': otp});
 
       final body = response.data as Map<String, dynamic>;
       final data = (body['data'] as Map<String, dynamic>?) ?? body;

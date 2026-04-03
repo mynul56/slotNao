@@ -10,6 +10,7 @@ class InputField extends StatelessWidget {
   final bool obscureText;
   final Widget? suffix;
   final TextInputType? keyboardType;
+  final bool readOnly;
   final String? Function(String?)? validator;
 
   const InputField({
@@ -21,6 +22,7 @@ class InputField extends StatelessWidget {
     this.obscureText = false,
     this.suffix,
     this.keyboardType,
+    this.readOnly = false,
     this.validator,
   });
 
@@ -37,6 +39,7 @@ class InputField extends StatelessWidget {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          readOnly: readOnly,
           obscureText: obscureText,
           validator: validator,
           style: const TextStyle(color: AppTheme.white),

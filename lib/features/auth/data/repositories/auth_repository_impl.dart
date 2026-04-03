@@ -11,19 +11,30 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDatasource _remoteDatasource;
   final FlutterSecureStorage _secureStorage;
 
-  const AuthRepositoryImpl({
-    required AuthRemoteDatasource remoteDatasource,
-    required FlutterSecureStorage secureStorage,
-  })  : _remoteDatasource = remoteDatasource,
-        _secureStorage = secureStorage;
+  const AuthRepositoryImpl({required AuthRemoteDatasource remoteDatasource, required FlutterSecureStorage secureStorage})
+    : _remoteDatasource = remoteDatasource,
+      _secureStorage = secureStorage;
 
   @override
-  Future<Either<Failure, UserEntity>> login({
-    required String phone,
-    required String password,
-  }) async {
+  Future<Either<Failure, void>> requestOtp({required String phone}) async {
     try {
-      final user = await _remoteDatasource.login(phone: phone, password: password);
+      await _remoteDatasource.requestOtp(phone: phone);
+      return const Right(null);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, statusCode: e.statusCode));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (_) {
+      return const Left(UnknownFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> login({required String phone, required String otp}) async {
+    try {
+      final user = await _remoteDatasource.login(phone: phone, otp: otp);
       return Right(user);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, statusCode: e.statusCode));
@@ -44,12 +55,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      final user = await _remoteDatasource.register(
-        name: name,
-        phone: phone,
-        email: email,
-        password: password,
-      );
+      final user = await _remoteDatasource.register(name: name, phone: phone, email: email, password: password);
       return Right(user);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, statusCode: e.statusCode));
@@ -96,18 +102,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, void>> resetPassword({
-    required String token,
-    required String newPassword,
-  }) async {
-    return const Right(null); // TODO: implement
-  }
-
-  @override
-  Future<Either<Failure, void>> verifyOtp({
-    required String phone,
-    required String otp,
-  }) async {
+  Future<Either<Failure, void>> resetPassword({required String token, required String newPassword}) async {
     return const Right(null); // TODO: implement
   }
 }

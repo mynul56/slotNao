@@ -7,14 +7,9 @@ class AppConstants {
   static const String packageName = 'com.slotnao.turf';
 
   // API
-  static const String baseUrl = String.fromEnvironment(
-    'BASE_URL',
-    defaultValue: 'https://api.slotnao.com/v1',
-  );
-  static const String wsBaseUrl = String.fromEnvironment(
-    'WS_BASE_URL',
-    defaultValue: 'wss://api.slotnao.com/ws',
-  );
+  static const String baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'https://api.slotnao.com/v1');
+  static const String wsBaseUrl = String.fromEnvironment('WS_BASE_URL', defaultValue: 'wss://api.slotnao.com/ws');
+  static const String pinnedCertSha256 = String.fromEnvironment('PINNED_CERT_SHA256', defaultValue: '');
 
   // Timeouts
   static const int connectTimeoutMs = 15000;
@@ -50,4 +45,7 @@ class AppConstants {
   // Feature flags
   static const bool enableRealtime = true;
   static const bool enablePushNotifications = true;
+
+  // Security hardening flags
+  static const bool blockCompromisedDevices = bool.fromEnvironment('BLOCK_COMPROMISED_DEVICES', defaultValue: true);
 }

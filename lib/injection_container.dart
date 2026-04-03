@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
@@ -14,6 +15,7 @@ import 'features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
 import 'features/auth/domain/usecases/logout_usecase.dart';
 import 'features/auth/domain/usecases/register_usecase.dart';
+import 'features/auth/domain/usecases/request_otp_usecase.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 // Booking
 import 'features/booking/data/datasources/booking_remote_datasource.dart';
@@ -54,7 +56,10 @@ Future<void> initDependencies() async {
   );
 
   sl.registerSingleton<Logger>(
-    Logger(printer: PrettyPrinter(methodCount: 1, errorMethodCount: 5, lineLength: 80, colors: true, printEmojis: true)),
+    Logger(
+      level: kReleaseMode ? Level.warning : Level.debug,
+      printer: PrettyPrinter(methodCount: 1, errorMethodCount: 5, lineLength: 80, colors: !kReleaseMode, printEmojis: false),
+    ),
   );
 
   // ── Core ──────────────────────────────────────────────────────────────
@@ -68,12 +73,19 @@ Future<void> initDependencies() async {
   sl
     ..registerLazySingleton<AuthRemoteDatasource>(() => AuthRemoteDatasourceImpl(dio: sl(), secureStorage: sl()))
     ..registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(remoteDatasource: sl(), secureStorage: sl()))
+    ..registerLazySingleton(() => RequestOtpUseCase(sl()))
     ..registerLazySingleton(() => LoginUseCase(sl()))
     ..registerLazySingleton(() => RegisterUseCase(sl()))
     ..registerLazySingleton(() => LogoutUseCase(sl()))
     ..registerLazySingleton(() => GetCurrentUserUseCase(sl()))
     ..registerFactory(
-      () => AuthBloc(loginUseCase: sl(), registerUseCase: sl(), logoutUseCase: sl(), getCurrentUserUseCase: sl()),
+      () => AuthBloc(
+        requestOtpUseCase: sl(),
+        loginUseCase: sl(),
+        registerUseCase: sl(),
+        logoutUseCase: sl(),
+        getCurrentUserUseCase: sl(),
+      ),
     );
 
   // ── Turf ──────────────────────────────────────────────────────────────

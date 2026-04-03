@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import '../../domain/entities/user_entity.dart';
 
 sealed class AuthState extends Equatable {
@@ -14,6 +15,16 @@ final class AuthInitial extends AuthState {
 
 final class AuthLoading extends AuthState {
   const AuthLoading();
+}
+
+final class AuthOtpRequested extends AuthState {
+  final String phone;
+  final String message;
+
+  const AuthOtpRequested({required this.phone, this.message = 'OTP sent successfully'});
+
+  @override
+  List<Object> get props => [phone, message];
 }
 
 final class AuthAuthenticated extends AuthState {
