@@ -15,7 +15,7 @@ abstract class AuthRemoteDatasource {
     required String email,
     String? name,
   });
-  Future<UserModel> register({required String name, required String phone, required String email, required String password});
+  Future<UserModel> register({required String name, String? phone, required String email, required String password});
   Future<void> logout();
   Future<UserModel> getCurrentUser();
 }
@@ -103,17 +103,17 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   }
 
   @override
-  Future<UserModel> register({
-    required String name,
-    required String phone,
-    required String email,
-    required String password,
-  }) async {
+  Future<UserModel> register({required String name, String? phone, required String email, required String password}) async {
     final envelope = await _apiClient.post<Map<String, dynamic>>(
       path: ApiEndpoints.register,
-      body: {'name': name, 'phone': phone, 'email': email, 'password': password},
+      body: {
+        'name': name,
+        if (phone != null && phone.trim().isNotEmpty) 'phone': phone,
+        'email': email,
+        'password': password,
+      },
       parser: (json) => json as Map<String, dynamic>,
-      requestKey: 'auth-register-$phone',
+      requestKey: 'auth-register-$email',
       cancelPrevious: true,
       retryPost: false,
     );

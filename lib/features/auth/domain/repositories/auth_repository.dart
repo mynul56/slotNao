@@ -19,7 +19,7 @@ abstract class AuthRepository {
 
   Future<Either<Failure, UserEntity>> register({
     required String name,
-    required String phone,
+    String? phone,
     required String email,
     required String password,
   });

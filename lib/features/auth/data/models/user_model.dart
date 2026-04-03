@@ -12,14 +12,15 @@ class UserModel extends UserEntity {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final createdRaw = json['created_at'] ?? json['createdAt'];
     return UserModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      email: json['email'] as String,
-      phone: json['phone'] as String,
-      avatarUrl: json['avatar_url'] as String?,
+      id: (json['id'] ?? '').toString(),
+      name: (json['name'] ?? 'User').toString(),
+      email: (json['email'] ?? '').toString(),
+      phone: (json['phone'] ?? '').toString(),
+      avatarUrl: (json['avatar_url'] ?? json['avatarUrl']) as String?,
       role: _parseRole(json['role'] as String? ?? 'player'),
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: createdRaw is String ? DateTime.tryParse(createdRaw) ?? DateTime.now() : DateTime.now(),
     );
   }
 
@@ -39,6 +40,7 @@ class UserModel extends UserEntity {
     return switch (role.toLowerCase()) {
       'owner' => UserRole.owner,
       'admin' => UserRole.admin,
+      'moderator' => UserRole.admin,
       _ => UserRole.player,
     };
   }
