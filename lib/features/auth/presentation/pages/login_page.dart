@@ -44,9 +44,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _onPasswordLogin() {
     if (!_formKey.currentState!.validate()) return;
-    context.read<AuthBloc>().add(
-      AuthPasswordLoginRequested(email: _emailCtrl.text.trim(), password: _passwordCtrl.text),
-    );
+    context.read<AuthBloc>().add(AuthPasswordLoginRequested(email: _emailCtrl.text.trim(), password: _passwordCtrl.text));
   }
 
   void _onRequestOtp() {

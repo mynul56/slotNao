@@ -41,10 +41,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _onRegister() {
     if (!_formKey.currentState!.validate()) return;
+    final phone = _phoneCtrl.text.trim();
     context.read<AuthBloc>().add(
       AuthRegisterRequested(
         name: _nameCtrl.text.trim(),
-        phone: _phoneCtrl.text.trim(),
+        phone: phone.isEmpty ? null : phone,
         email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text,
       ),
@@ -110,25 +111,29 @@ class _RegisterPageState extends State<RegisterPage> {
                       const SizedBox(height: 16),
                       InputField(
                         controller: _phoneCtrl,
-                        label: 'Phone Number',
+                        label: 'Phone Number (optional)',
                         hint: '01XXXXXXXXX',
                         icon: Icons.phone_rounded,
                         keyboardType: TextInputType.phone,
                         validator: (val) {
-                          if (val == null || val.isEmpty) return 'Phone is required';
-                          if (!val.isValidBangladeshPhone) return 'Enter valid BD number';
+                          if (val != null && val.trim().isNotEmpty && !val.trim().isValidBangladeshPhone) {
+                            return 'Enter valid BD number';
+                          }
                           return null;
                         },
                       ),
                       const SizedBox(height: 16),
                       InputField(
                         controller: _emailCtrl,
-                        label: 'Email (optional)',
+                        label: 'Email',
                         hint: 'you@example.com',
                         icon: Icons.email_rounded,
                         keyboardType: TextInputType.emailAddress,
                         validator: (val) {
-                          if (val != null && val.isNotEmpty && !val.isValidEmail) {
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Email is required';
+                          }
+                          if (!val.trim().isValidEmail) {
                             return 'Enter a valid email';
                           }
                           return null;
