@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -75,7 +76,7 @@ class _TurfDetailViewState extends State<_TurfDetailView> {
             icon: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(color: AppTheme.dark900.withValues(alpha: 0.7), shape: BoxShape.circle),
-              child: const Icon(Icons.arrow_back_ios_rounded, size: 18),
+              child: const Icon(CupertinoIcons.back, size: 18),
             ),
             onPressed: () => context.pop(),
           ),
@@ -103,7 +104,7 @@ class _TurfDetailViewState extends State<_TurfDetailView> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.star_rounded, color: AppTheme.accentAmber, size: 16),
+                          const Icon(CupertinoIcons.star_fill, color: AppTheme.accentAmber, size: 16),
                           const SizedBox(width: 4),
                           Text(
                             (turf.rating).toStringAsFixed(1),
@@ -117,7 +118,7 @@ class _TurfDetailViewState extends State<_TurfDetailView> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_rounded, color: AppTheme.primaryGreen, size: 16),
+                    const Icon(CupertinoIcons.location_solid, color: AppTheme.primaryGreen, size: 16),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(turf.address, style: const TextStyle(color: AppTheme.neutralGrey, fontSize: 13)),
@@ -169,7 +170,7 @@ class _TurfDetailViewState extends State<_TurfDetailView> {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.circle, color: AppTheme.primaryGreen, size: 8),
+                          Icon(CupertinoIcons.circle_fill, color: AppTheme.primaryGreen, size: 8),
                           SizedBox(width: 4),
                           Text(
                             'Live',

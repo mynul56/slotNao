@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -39,7 +40,7 @@ class BookingConfirmationPage extends StatelessWidget {
                     ),
                   ),
                   child: const Icon(
-                    Icons.check_rounded,
+                    CupertinoIcons.check_mark,
                     color: AppTheme.primaryGreen,
                     size: 52,
                   ),
@@ -76,7 +77,7 @@ class BookingConfirmationPage extends StatelessWidget {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.info_outline_rounded,
+                    Icon(CupertinoIcons.info_circle,
                         color: AppTheme.primaryGreen, size: 20),
                     SizedBox(width: 10),
                     Expanded(

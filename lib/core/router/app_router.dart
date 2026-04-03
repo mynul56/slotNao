@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -74,7 +75,7 @@ final GoRouter appRouter = GoRouter(
           builder: (_, __) => const UserTabPlaceholderPage(
             title: 'Explore',
             subtitle: 'Discover nearby teams, events, and trending arenas.',
-            icon: Icons.grid_view_rounded,
+            icon: CupertinoIcons.square_grid_2x2_fill,
           ),
         ),
         GoRoute(path: AppRoutes.schedule, name: 'schedule', builder: (_, __) => const MyBookingsPage()),
@@ -84,7 +85,7 @@ final GoRouter appRouter = GoRouter(
           builder: (_, __) => const UserTabPlaceholderPage(
             title: 'Wallet',
             subtitle: 'Track payments, refunds, and credits in one place.',
-            icon: Icons.account_balance_wallet_rounded,
+            icon: CupertinoIcons.creditcard_fill,
           ),
         ),
         GoRoute(path: AppRoutes.profile, name: 'profile', builder: (_, __) => const ProfilePage()),
@@ -117,7 +118,7 @@ final GoRouter appRouter = GoRouter(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.route_rounded, size: 64, color: Colors.grey),
+          const Icon(CupertinoIcons.map_fill, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
           Text('Page not found: ${state.error}'),
           TextButton(onPressed: () => context.go(AppRoutes.home), child: const Text('Go Home')),

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -166,11 +167,11 @@ class _BookingView extends StatelessWidget {
   Widget _buildPaymentOptions() {
     return Column(
       children: [
-        _paymentOption('bKash', Icons.payment_rounded, AppTheme.errorRed),
+        _paymentOption('bKash', CupertinoIcons.money_dollar_circle_fill, AppTheme.errorRed),
         const SizedBox(height: 8),
-        _paymentOption('Nagad', Icons.account_balance_wallet_rounded, AppTheme.warningOrange),
+        _paymentOption('Nagad', CupertinoIcons.creditcard_fill, AppTheme.warningOrange),
         const SizedBox(height: 8),
-        _paymentOption('Card', Icons.credit_card_rounded, AppTheme.accentBlue),
+        _paymentOption('Card', CupertinoIcons.creditcard_fill, AppTheme.accentBlue),
       ],
     );
   }
@@ -193,7 +194,7 @@ class _BookingView extends StatelessWidget {
           ),
           const Spacer(),
           Icon(
-            name == 'bKash' ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+            name == 'bKash' ? CupertinoIcons.check_mark_circled_solid : CupertinoIcons.circle_fill,
             color: name == 'bKash' ? AppTheme.primaryGreen : AppTheme.neutralGrey,
           ),
         ],

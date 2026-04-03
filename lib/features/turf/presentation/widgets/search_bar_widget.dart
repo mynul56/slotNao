@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -39,11 +40,11 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             fontSize: 14,
             fontFamily: 'Outfit',
           ),
-          prefixIcon: const Icon(Icons.search_rounded,
+          prefixIcon: const Icon(CupertinoIcons.search,
               color: AppTheme.neutralGrey, size: 20),
           suffixIcon: _ctrl.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.close_rounded,
+                  icon: const Icon(CupertinoIcons.xmark_circle_fill,
                       color: AppTheme.neutralGrey, size: 18),
                   onPressed: () {
                     _ctrl.clear();

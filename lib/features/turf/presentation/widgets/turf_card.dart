@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -42,12 +43,12 @@ class TurfCard extends StatelessWidget {
                         const LoadingWidget(height: double.infinity, width: double.infinity, radius: BorderRadius.zero),
                     errorWidget: (_, __, ___) => Container(
                       color: AppTheme.dark600,
-                      child: const Icon(Icons.sports_soccer_rounded, color: AppTheme.dark500, size: 48),
+                      child: const Icon(CupertinoIcons.sportscourt_fill, color: AppTheme.dark500, size: 48),
                     ),
                   )
                 : Container(
                     color: AppTheme.dark600,
-                    child: const Icon(Icons.sports_soccer_rounded, color: AppTheme.dark500, size: 48),
+                    child: const Icon(CupertinoIcons.sportscourt_fill, color: AppTheme.dark500, size: 48),
                   ),
             // Availability badge
             Positioned(
@@ -108,7 +109,7 @@ class TurfCard extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.star_rounded, color: AppTheme.accentAmber, size: 14),
+                  const Icon(CupertinoIcons.star_fill, color: AppTheme.accentAmber, size: 14),
                   const SizedBox(width: 3),
                   Text(
                     turf.rating.toStringAsFixed(1),
@@ -122,7 +123,7 @@ class TurfCard extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.location_on_rounded, color: AppTheme.primaryGreen, size: 13),
+              const Icon(CupertinoIcons.location_solid, color: AppTheme.primaryGreen, size: 13),
               const SizedBox(width: 3),
               Expanded(
                 child: Text(

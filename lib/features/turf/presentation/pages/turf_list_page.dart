@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -98,7 +99,7 @@ class _TurfListViewState extends State<_TurfListView> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.notifications_rounded, color: AppTheme.white),
+          icon: const Icon(CupertinoIcons.bell_fill, color: AppTheme.white),
           onPressed: () {},
         ),
         const SizedBox(width: 4),
@@ -161,7 +162,7 @@ class _TurfListViewState extends State<_TurfListView> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.error_outline_rounded, color: AppTheme.errorRed, size: 48),
+                  const Icon(CupertinoIcons.exclamationmark_triangle_fill, color: AppTheme.errorRed, size: 48),
                   const SizedBox(height: 12),
                   Text(state.message, style: const TextStyle(color: AppTheme.neutralGrey)),
                   const SizedBox(height: 16),
@@ -187,7 +188,7 @@ class _TurfListViewState extends State<_TurfListView> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.sports_soccer_rounded, color: AppTheme.dark500, size: 64),
+                  Icon(CupertinoIcons.sportscourt_fill, color: AppTheme.dark500, size: 64),
                   SizedBox(height: 12),
                   Text('No turfs found', style: TextStyle(color: AppTheme.neutralGrey)),
                 ],

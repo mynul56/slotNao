@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -68,7 +69,7 @@ class _RegisterPageState extends State<RegisterPage> {
         backgroundColor: AppTheme.dark900,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          leading: IconButton(icon: const Icon(Icons.arrow_back_ios_rounded), onPressed: () => context.pop()),
+          leading: IconButton(icon: const Icon(CupertinoIcons.back), onPressed: () => context.pop()),
         ),
         body: Stack(
           children: [
@@ -108,7 +109,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         controller: _nameCtrl,
                         label: 'Full Name',
                         hint: 'John Doe',
-                        icon: Icons.person_rounded,
+                        icon: CupertinoIcons.person_fill,
                         validator: (val) => val == null || val.isEmpty ? 'Name is required' : null,
                       ),
                       const SizedBox(height: 16),
@@ -116,7 +117,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         controller: _phoneCtrl,
                         label: 'Phone Number (optional)',
                         hint: '01XXXXXXXXX',
-                        icon: Icons.phone_rounded,
+                        icon: CupertinoIcons.phone_fill,
                         keyboardType: TextInputType.phone,
                         validator: (val) {
                           if (val != null && val.trim().isNotEmpty && !val.trim().isValidBangladeshPhone) {
@@ -130,7 +131,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         controller: _emailCtrl,
                         label: 'Email',
                         hint: 'you@example.com',
-                        icon: Icons.email_rounded,
+                        icon: CupertinoIcons.mail_solid,
                         keyboardType: TextInputType.emailAddress,
                         validator: (val) {
                           if (val == null || val.trim().isEmpty) {
@@ -147,11 +148,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         controller: _passwordCtrl,
                         label: 'Password',
                         hint: '••••••••',
-                        icon: Icons.lock_rounded,
+                        icon: CupertinoIcons.lock_fill,
                         obscureText: _obscurePassword,
                         suffix: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                            _obscurePassword ? CupertinoIcons.eye_fill : CupertinoIcons.eye_slash_fill,
                             color: AppTheme.neutralGrey,
                           ),
                           onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
@@ -167,7 +168,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         controller: _confirmPasswordCtrl,
                         label: 'Confirm Password',
                         hint: '••••••••',
-                        icon: Icons.lock_outline_rounded,
+                        icon: CupertinoIcons.lock,
                         obscureText: _obscurePassword,
                         validator: (val) {
                           if (val != _passwordCtrl.text) {
@@ -182,7 +183,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           return CustomButton(
                             onPressed: state is AuthLoading ? null : _onRegister,
                             label: 'Create Account',
-                            icon: Icons.rocket_launch_rounded,
+                            icon: CupertinoIcons.paperplane_fill,
                             isLoading: state is AuthLoading,
                           );
                         },

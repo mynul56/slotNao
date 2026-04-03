@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -125,7 +126,7 @@ class _LoginPageState extends State<LoginPage> {
                                       controller: _emailCtrl,
                                       label: 'Email Address',
                                       hint: 'you@example.com',
-                                      icon: Icons.email_rounded,
+                                      icon: CupertinoIcons.mail_solid,
                                       keyboardType: TextInputType.emailAddress,
                                       validator: (val) {
                                         if (val == null || val.trim().isEmpty) return 'Email is required';
@@ -138,11 +139,11 @@ class _LoginPageState extends State<LoginPage> {
                                       controller: _passwordCtrl,
                                       label: 'Password',
                                       hint: '••••••••',
-                                      icon: Icons.lock_rounded,
+                                      icon: CupertinoIcons.lock_fill,
                                       obscureText: _obscurePassword,
                                       suffix: IconButton(
                                         icon: Icon(
-                                          _obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                                          _obscurePassword ? CupertinoIcons.eye_fill : CupertinoIcons.eye_slash_fill,
                                           color: AppTheme.neutralGrey,
                                         ),
                                         onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
@@ -188,7 +189,7 @@ class _LoginPageState extends State<LoginPage> {
                                         return CustomButton(
                                           onPressed: state is AuthLoading ? null : _onLogin,
                                           label: 'Login',
-                                          icon: Icons.login_rounded,
+                                          icon: CupertinoIcons.arrow_right_circle_fill,
                                           isLoading: state is AuthLoading,
                                         );
                                       },
@@ -211,7 +212,7 @@ class _LoginPageState extends State<LoginPage> {
                                     Expanded(
                                       child: OutlinedButton.icon(
                                         onPressed: () => _onSocialLogin('google'),
-                                        icon: const Icon(Icons.g_mobiledata_rounded),
+                                        icon: const Icon(CupertinoIcons.globe),
                                         label: const Text('Google'),
                                       ),
                                     ),
@@ -219,7 +220,7 @@ class _LoginPageState extends State<LoginPage> {
                                     Expanded(
                                       child: OutlinedButton.icon(
                                         onPressed: () => _onSocialLogin('facebook'),
-                                        icon: const Icon(Icons.facebook_rounded),
+                                        icon: const Icon(CupertinoIcons.person_2_fill),
                                         label: const Text('Facebook'),
                                       ),
                                     ),
@@ -255,7 +256,7 @@ class _LoginPageState extends State<LoginPage> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [BoxShadow(color: AppTheme.primaryGreen.withValues(alpha: 0.3), blurRadius: 20, spreadRadius: 2)],
           ),
-          child: const Icon(Icons.sports_soccer_rounded, color: AppTheme.dark900, size: 30),
+          child: const Icon(CupertinoIcons.sportscourt_fill, color: AppTheme.dark900, size: 30),
         ),
         const SizedBox(height: 24),
         Text(

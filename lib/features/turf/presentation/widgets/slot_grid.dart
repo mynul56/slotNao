@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -115,7 +116,7 @@ class _SlotGridState extends State<SlotGrid> {
               }
               context.push('/home/turf/${widget.turfId}/book', extra: slot);
             },
-            icon: const Icon(Icons.sports_soccer_rounded, size: 18),
+            icon: const Icon(CupertinoIcons.sportscourt_fill, size: 18),
             label: Text('Book Selected Slot  •  ৳${widget.slots.firstWhere((s) => s.id == _selectedSlotId).price.toInt()}'),
           ),
         ],

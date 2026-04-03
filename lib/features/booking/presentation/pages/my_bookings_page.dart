@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -83,7 +84,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> with SingleTickerProvid
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.calendar_today_rounded, color: AppTheme.dark500, size: 56),
+            Icon(CupertinoIcons.calendar, color: AppTheme.dark500, size: 56),
             SizedBox(height: 12),
             Text('No bookings here', style: TextStyle(color: AppTheme.neutralGrey)),
           ],

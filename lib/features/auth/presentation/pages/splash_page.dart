@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -94,7 +95,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                           BoxShadow(color: AppTheme.primaryGreen.withValues(alpha: 0.4), blurRadius: 32, spreadRadius: 4),
                         ],
                       ),
-                      child: const Icon(Icons.sports_soccer_rounded, color: AppTheme.dark900, size: 52),
+                      child: const Icon(CupertinoIcons.sportscourt_fill, color: AppTheme.dark900, size: 52),
                     ),
                     const SizedBox(height: 20),
                     const Text(

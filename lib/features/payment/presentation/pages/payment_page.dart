@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -60,7 +61,7 @@ class _PaymentViewState extends State<_PaymentView> {
         backgroundColor: AppTheme.dark900,
         appBar: AppBar(
           title: const Text('Payment'),
-          leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back_ios_new_rounded)),
+          leading: IconButton(onPressed: () => context.pop(), icon: const Icon(CupertinoIcons.back)),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -126,7 +127,7 @@ class _PaymentViewState extends State<_PaymentView> {
                 builder: (context, state) {
                   return CustomButton(
                     label: 'Pay Securely',
-                    icon: Icons.lock_rounded,
+                    icon: CupertinoIcons.lock_fill,
                     isLoading: state is PaymentLoading,
                     onPressed: bookingId == null || state is PaymentLoading
                         ? null
@@ -180,7 +181,7 @@ class _GatewayTile extends StatelessWidget {
               ),
             ),
             Icon(
-              groupValue == value ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+              groupValue == value ? CupertinoIcons.check_mark_circled_solid : CupertinoIcons.circle_fill,
               color: groupValue == value ? AppTheme.primaryGreen : AppTheme.neutralGrey,
             ),
           ],

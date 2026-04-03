@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
@@ -11,11 +12,11 @@ class GlassBottomNavbar extends StatelessWidget {
   const GlassBottomNavbar({super.key, required this.currentIndex, required this.onTap});
 
   static const _items = <({IconData icon, String label})>[
-    (icon: Icons.home_rounded, label: 'Home'),
-    (icon: Icons.grid_view_rounded, label: 'Explore'),
-    (icon: Icons.calendar_month_rounded, label: 'Schedule'),
-    (icon: Icons.account_balance_wallet_rounded, label: 'Wallet'),
-    (icon: Icons.person_rounded, label: 'Profile'),
+    (icon: CupertinoIcons.house_fill, label: 'Home'),
+    (icon: CupertinoIcons.square_grid_2x2_fill, label: 'Explore'),
+    (icon: CupertinoIcons.calendar, label: 'Schedule'),
+    (icon: CupertinoIcons.creditcard_fill, label: 'Wallet'),
+    (icon: CupertinoIcons.person_fill, label: 'Profile'),
   ];
 
   @override
@@ -89,7 +90,7 @@ class GlassBottomNavbar extends StatelessWidget {
                               const SizedBox(width: 10),
                               Text(
                                 item.label,
-                              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
                               ),
                             ],
                           ],

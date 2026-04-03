@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -54,7 +55,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.white),
+            icon: const Icon(CupertinoIcons.back, color: AppTheme.white),
             onPressed: () => context.pop(),
           ),
         ),
@@ -95,7 +96,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             controller: _emailCtrl,
                             label: 'Email Address',
                             hint: 'you@example.com',
-                            icon: Icons.email_rounded,
+                            icon: CupertinoIcons.mail_solid,
                             keyboardType: TextInputType.emailAddress,
                             validator: (val) {
                               if (val == null || val.trim().isEmpty) return 'Email is required';
@@ -109,7 +110,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               return CustomButton(
                                 onPressed: state is AuthLoading ? null : _onRequestReset,
                                 label: 'Send Reset OTP',
-                                icon: Icons.send_rounded,
+                                icon: CupertinoIcons.paperplane_fill,
                                 isLoading: state is AuthLoading,
                               );
                             },

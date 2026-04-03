@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -31,7 +32,7 @@ class _ProfileView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Profile'),
         backgroundColor: AppTheme.dark800,
-        actions: [IconButton(icon: const Icon(Icons.edit_rounded), onPressed: () {})],
+        actions: [IconButton(icon: const Icon(CupertinoIcons.pencil), onPressed: () {})],
       ),
       body: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
@@ -133,11 +134,11 @@ class _ProfileView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _statItem('Total', '$total', Icons.calendar_month_rounded),
+          _statItem('Total', '$total', CupertinoIcons.calendar),
           Container(width: 1, height: 40, color: AppTheme.dark500),
-          _statItem('Completed', '$completed', Icons.check_circle_rounded),
+          _statItem('Completed', '$completed', CupertinoIcons.check_mark_circled_solid),
           Container(width: 1, height: 40, color: AppTheme.dark500),
-          _statItem('Cancelled', '${total - completed}', Icons.cancel_rounded),
+          _statItem('Cancelled', '${total - completed}', CupertinoIcons.xmark_circle_fill),
         ],
       ),
     );
@@ -159,12 +160,12 @@ class _ProfileView extends StatelessWidget {
 
   Widget _buildMenuSection(BuildContext context) {
     final items = [
-      _MenuItem(icon: Icons.calendar_month_rounded, title: 'My Bookings', onTap: () => context.push(AppRoutes.myBookings)),
-      _MenuItem(icon: Icons.notifications_rounded, title: 'Notifications', onTap: () {}),
-      _MenuItem(icon: Icons.help_outline_rounded, title: 'Help & Support', onTap: () {}),
-      _MenuItem(icon: Icons.privacy_tip_rounded, title: 'Privacy Policy', onTap: () {}),
+      _MenuItem(icon: CupertinoIcons.calendar, title: 'My Bookings', onTap: () => context.push(AppRoutes.myBookings)),
+      _MenuItem(icon: CupertinoIcons.bell_fill, title: 'Notifications', onTap: () {}),
+      _MenuItem(icon: CupertinoIcons.question_circle, title: 'Help & Support', onTap: () {}),
+      _MenuItem(icon: CupertinoIcons.shield_fill, title: 'Privacy Policy', onTap: () {}),
       _MenuItem(
-        icon: Icons.logout_rounded,
+        icon: CupertinoIcons.square_arrow_right,
         title: 'Logout',
         isDestructive: true,
         onTap: () {
@@ -188,7 +189,7 @@ class _ProfileView extends StatelessWidget {
             item.title,
             style: TextStyle(color: item.isDestructive ? AppTheme.errorRed : AppTheme.white, fontWeight: FontWeight.w500),
           ),
-          trailing: item.isDestructive ? null : const Icon(Icons.chevron_right_rounded, color: AppTheme.dark500),
+          trailing: item.isDestructive ? null : const Icon(CupertinoIcons.chevron_right, color: AppTheme.dark500),
           onTap: item.onTap,
         );
       },

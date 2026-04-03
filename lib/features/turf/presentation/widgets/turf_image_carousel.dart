@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -25,7 +26,7 @@ class _TurfImageCarouselState extends State<TurfImageCarousel> {
     if (widget.imageUrls.isEmpty) {
       return Container(
         color: AppTheme.dark600,
-        child: const Icon(Icons.sports_soccer_rounded,
+        child: const Icon(CupertinoIcons.sportscourt_fill,
             color: AppTheme.dark500, size: 64),
       );
     }

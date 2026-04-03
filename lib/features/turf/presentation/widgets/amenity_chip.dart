@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+
 import '../../../../core/theme/app_theme.dart';
 
 class AmenityChip extends StatelessWidget {
@@ -21,11 +22,7 @@ class AmenityChip extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             label,
-            style: const TextStyle(
-              color: AppTheme.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(color: AppTheme.white, fontSize: 12, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -34,23 +31,23 @@ class AmenityChip extends StatelessWidget {
 
   IconData _iconForAmenity(String amenity) {
     final lower = amenity.toLowerCase();
-    if (lower.contains('park')) return Icons.local_parking_rounded;
+    if (lower.contains('park')) return CupertinoIcons.car_detailed;
     if (lower.contains('shower') || lower.contains('changing')) {
-      return Icons.shower_rounded;
+      return CupertinoIcons.drop_fill;
     }
     if (lower.contains('light') || lower.contains('flood')) {
-      return Icons.lightbulb_rounded;
+      return CupertinoIcons.lightbulb_fill;
     }
     if (lower.contains('cafe') || lower.contains('canteen')) {
-      return Icons.local_cafe_rounded;
+      return CupertinoIcons.bag_fill;
     }
-    if (lower.contains('wifi')) return Icons.wifi_rounded;
+    if (lower.contains('wifi')) return CupertinoIcons.wifi;
     if (lower.contains('cctv') || lower.contains('security')) {
-      return Icons.security_rounded;
+      return CupertinoIcons.shield_fill;
     }
     if (lower.contains('toilet') || lower.contains('wash')) {
-      return Icons.wc_rounded;
+      return CupertinoIcons.person;
     }
-    return Icons.check_circle_rounded;
+    return CupertinoIcons.check_mark_circled_solid;
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -74,7 +75,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.white),
+            icon: const Icon(CupertinoIcons.back, color: AppTheme.white),
             onPressed: () => context.pop(),
           ),
         ),
@@ -115,7 +116,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                             controller: _emailCtrl,
                             label: 'Email Address',
                             hint: 'you@example.com',
-                            icon: Icons.email_rounded,
+                            icon: CupertinoIcons.mail_solid,
                             keyboardType: TextInputType.emailAddress,
                             readOnly: widget.email != null && widget.email!.isNotEmpty,
                             validator: (val) {
@@ -129,7 +130,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                             controller: _otpCtrl,
                             label: 'OTP Code',
                             hint: '6-digit OTP',
-                            icon: Icons.sms_rounded,
+                            icon: CupertinoIcons.chat_bubble_2_fill,
                             keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.trim().isEmpty) return 'OTP is required';
@@ -141,11 +142,11 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                             controller: _passwordCtrl,
                             label: 'New Password',
                             hint: '••••••••',
-                            icon: Icons.lock_rounded,
+                            icon: CupertinoIcons.lock_fill,
                             obscureText: _obscurePassword,
                             suffix: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                                _obscurePassword ? CupertinoIcons.eye_fill : CupertinoIcons.eye_slash_fill,
                                 color: AppTheme.neutralGrey,
                               ),
                               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
@@ -161,7 +162,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                             controller: _confirmPasswordCtrl,
                             label: 'Confirm New Password',
                             hint: '••••••••',
-                            icon: Icons.lock_rounded,
+                            icon: CupertinoIcons.lock_fill,
                             obscureText: _obscurePassword,
                             validator: (val) {
                               if (val == null || val.isEmpty) return 'Please confirm your password';
@@ -175,7 +176,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                               return CustomButton(
                                 onPressed: state is AuthLoading ? null : _onResetPassword,
                                 label: 'Change Password',
-                                icon: Icons.check_circle_rounded,
+                                icon: CupertinoIcons.check_mark_circled_solid,
                                 isLoading: state is AuthLoading,
                               );
                             },
