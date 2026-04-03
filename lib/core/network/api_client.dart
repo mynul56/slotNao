@@ -88,7 +88,7 @@ class ApiClient {
         cancelToken: requestKey != null ? _requestCanceler.tokenFor(requestKey, cancelPrevious: cancelPrevious) : null,
       );
 
-      final envelope = ApiResponse<T>.fromJson(response.data, parser);
+      final envelope = ApiResponse.fromJson<T>(response.data, parser);
       _ensureSuccess(envelope);
       return envelope;
     });
@@ -114,7 +114,7 @@ class ApiClient {
         cancelToken: requestKey != null ? _requestCanceler.tokenFor(requestKey, cancelPrevious: cancelPrevious) : null,
       );
 
-      final envelope = ApiResponse<T>.fromJson(response.data, parser);
+      final envelope = ApiResponse.fromJson<T>(response.data, parser);
       _ensureSuccess(envelope);
       return envelope;
     });
@@ -130,7 +130,7 @@ class ApiClient {
 
     return _execute(() async {
       final response = await _dio.patch<dynamic>(path, data: body, queryParameters: queryParameters);
-      final envelope = ApiResponse<T>.fromJson(response.data, parser);
+      final envelope = ApiResponse.fromJson<T>(response.data, parser);
       _ensureSuccess(envelope);
       return envelope;
     });
@@ -151,7 +151,7 @@ class ApiClient {
 
     return _execute(() async {
       final response = await _dio.post<dynamic>(path, data: formData, onSendProgress: onSendProgress);
-      final envelope = ApiResponse<T>.fromJson(response.data, parser);
+      final envelope = ApiResponse.fromJson<T>(response.data, parser);
       _ensureSuccess(envelope);
       return envelope;
     });
@@ -173,7 +173,7 @@ class ApiClient {
       requestKey: '$path-page-$page-size-$pageSize',
     );
 
-    return PaginatedResult<T>.fromEnvelope(
+    return PaginatedResult.fromEnvelope<T>(
       payload: {'status': response.status, 'data': response.data},
       itemParser: itemParser,
       fallbackPage: page,

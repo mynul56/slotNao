@@ -46,7 +46,7 @@ dependencies:
   logger: ^2.5.0
   dartz: ^0.10.1
   rxdart: ^0.28.0
-  retrofit: ^4.7.2
+  retrofit: 4.7.0
 
   # Icons
   cupertino_icons: ^1.0.8

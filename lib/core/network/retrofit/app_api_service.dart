@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
-import '../../api_endpoints.dart';
+import '../api_endpoints.dart';
 
 part 'app_api_service.g.dart';
 
@@ -20,8 +20,4 @@ abstract class AppApiService {
 
   @POST(ApiEndpoints.bookings)
   Future<Map<String, dynamic>> createBooking(@Body() Map<String, dynamic> body);
-
-  @MultiPart()
-  @POST(ApiEndpoints.uploadAvatar)
-  Future<Map<String, dynamic>> uploadAvatar(@Part(name: 'avatar') MultipartFile avatar);
 }
