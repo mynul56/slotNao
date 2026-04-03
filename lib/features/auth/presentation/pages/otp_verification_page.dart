@@ -31,12 +31,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
 
   void _onVerify() {
     if (!_formKey.currentState!.validate()) return;
-    context.read<AuthBloc>().add(
-      AuthVerifyOtpRequested(
-        email: widget.email,
-        otp: _otpCtrl.text.trim(),
-      ),
-    );
+    context.read<AuthBloc>().add(AuthVerifyOtpRequested(email: widget.email, otp: _otpCtrl.text.trim()));
   }
 
   @override
@@ -47,7 +42,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       listener: (context, state) {
         if (state is AuthOtpVerificationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account verified successfully!')));
-          context.go(AppRoutes.roleHub);
+          context.go(AppRoutes.login);
         } else if (state is AuthFailureState) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
         }
@@ -86,7 +81,10 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                         style: TextStyle(fontSize: AppResponsive.scaleText(context, 15), color: AppTheme.neutralGrey),
                         children: [
                           const TextSpan(text: 'We sent a 6-digit verification code to '),
-                          TextSpan(text: widget.email, style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.w600)),
+                          TextSpan(
+                            text: widget.email,
+                            style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.w600),
+                          ),
                           const TextSpan(text: '. Enter it below to activate your account.'),
                         ],
                       ),
@@ -107,10 +105,13 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                             hint: '123456',
                             icon: Icons.verified_user_rounded,
                             keyboardType: TextInputType.number,
-                            validator: (val) {
-                              if (val == null || val.trim().isEmpty) return 'Code is required';
+                                validator: (val) {
+                                  if (val == null || val.trim().isEmpty) {
+                                    return 'Code is required';
+                                  }
                               final normalized = val.trim();
-                              if (normalized.length != 6 || int.tryParse(normalized) == null) return 'Enter a valid 6-digit code';
+                              if (normalized.length != 6 || int.tryParse(normalized) == null)
+                                return 'Enter a valid 6-digit code';
                               return null;
                             },
                           ),

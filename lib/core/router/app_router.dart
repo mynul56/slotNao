@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/admin/presentation/pages/admin_shell_page.dart';
+import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
@@ -34,25 +35,22 @@ final GoRouter appRouter = GoRouter(
         state.matchedLocation == AppRoutes.login ||
         state.matchedLocation == AppRoutes.onboarding ||
         state.matchedLocation == AppRoutes.register ||
+        state.matchedLocation == AppRoutes.forgotPassword ||
+        state.matchedLocation == AppRoutes.resetPassword ||
+        state.matchedLocation == AppRoutes.verifyOtp ||
         state.matchedLocation == AppRoutes.splash;
 
     if (!isAuthenticated && !isAuthRoute) return AppRoutes.login;
     if (isAuthenticated && isAuthRoute && state.matchedLocation != AppRoutes.splash) {
-      return AppRoutes.roleHub;
+      return _postAuthRoute(authState.user.role);
     }
     return null;
   },
   routes: [
     GoRoute(path: AppRoutes.splash, name: 'splash', builder: (_, __) => const SplashPage()),
     GoRoute(path: AppRoutes.onboarding, name: 'onboarding', builder: (_, __) => const OnboardingPage()),
-    GoRoute(
-      path: AppRoutes.login,
-      builder: (context, state) => const LoginPage(),
-    ),
-    GoRoute(
-      path: AppRoutes.forgotPassword,
-      builder: (context, state) => const ForgotPasswordPage(),
-    ),
+    GoRoute(path: AppRoutes.login, builder: (context, state) => const LoginPage()),
+    GoRoute(path: AppRoutes.forgotPassword, builder: (context, state) => const ForgotPasswordPage()),
     GoRoute(
       path: AppRoutes.resetPassword,
       builder: (context, state) {
@@ -60,10 +58,7 @@ final GoRouter appRouter = GoRouter(
         return ResetPasswordPage(email: email);
       },
     ),
-    GoRoute(
-      path: AppRoutes.register,
-      builder: (context, state) => const RegisterPage(),
-    ),
+    GoRoute(path: AppRoutes.register, builder: (context, state) => const RegisterPage()),
     GoRoute(
       path: AppRoutes.verifyOtp,
       builder: (context, state) {
@@ -126,3 +121,14 @@ final GoRouter appRouter = GoRouter(
     ),
   ),
 );
+
+String _postAuthRoute(UserRole role) {
+  switch (role) {
+    case UserRole.owner:
+      return AppRoutes.ownerHome;
+    case UserRole.admin:
+      return AppRoutes.adminHome;
+    case UserRole.player:
+      return AppRoutes.home;
+  }
+}

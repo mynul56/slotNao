@@ -10,6 +10,7 @@ import '../../../../core/ui/responsive/app_responsive.dart';
 import '../../../../core/ui/widgets/custom_button.dart';
 import '../../../../core/ui/widgets/input_field.dart';
 import '../../../../core/utils/extensions.dart';
+import '../../domain/entities/user_entity.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -46,12 +47,7 @@ class _LoginPageState extends State<LoginPage> {
     }
     final providerToken = '${provider}_${DateTime.now().millisecondsSinceEpoch}_${_emailCtrl.text.trim().toLowerCase()}';
     context.read<AuthBloc>().add(
-      AuthSocialLoginRequested(
-        provider: provider,
-        providerToken: providerToken,
-        email: _emailCtrl.text.trim(),
-        name: null,
-      ),
+      AuthSocialLoginRequested(provider: provider, providerToken: providerToken, email: _emailCtrl.text.trim(), name: null),
     );
   }
 
@@ -63,7 +59,9 @@ class _LoginPageState extends State<LoginPage> {
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthAuthenticated) context.go(AppRoutes.roleHub);
+        if (state is AuthAuthenticated) {
+          context.go(_postAuthRoute(state.user.role));
+        }
         if (state is AuthFailureState) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
         }
@@ -283,5 +281,16 @@ class _LoginPageState extends State<LoginPage> {
         ],
       ),
     );
+  }
+
+  String _postAuthRoute(UserRole role) {
+    switch (role) {
+      case UserRole.owner:
+        return AppRoutes.ownerHome;
+      case UserRole.admin:
+        return AppRoutes.adminHome;
+      case UserRole.player:
+        return AppRoutes.home;
+    }
   }
 }
