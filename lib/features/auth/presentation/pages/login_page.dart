@@ -133,7 +133,10 @@ class _LoginPageState extends State<LoginPage> {
                                         validator: (val) {
                                           if (!_otpRequested) return null;
                                           if (val == null || val.trim().isEmpty) return 'OTP is required';
-                                          if (!RegExp(r'^\d{6}4').hasMatch(val.trim())) return 'OTP must be 6 digits';
+                                          final normalized = val.trim();
+                                          if (normalized.length != 6 || int.tryParse(normalized) == null) {
+                                            return 'OTP must be 6 digits';
+                                          }
                                           return null;
                                         },
                                       ),

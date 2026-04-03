@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/demo_media.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/ui/responsive/app_responsive.dart';
 import '../../../../injection_container.dart' as di;
 import '../../domain/entities/turf_entity.dart';
 import '../bloc/turf_bloc.dart';
@@ -112,9 +113,10 @@ class _TurfListViewState extends State<_TurfListView> {
   }
 
   Widget _buildSearchBar() {
+    final horizontal = AppResponsive.horizontalPadding(context);
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+        padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 0),
         child: SearchBarWidget(onChanged: (q) => context.read<TurfBloc>().add(TurfSearchRequested(q))),
       ),
     );
@@ -122,11 +124,12 @@ class _TurfListViewState extends State<_TurfListView> {
 
   Widget _buildCategoryChips() {
     const categories = ['All', 'Football', 'Cricket', 'Basketball', 'Badminton'];
+    final horizontal = AppResponsive.horizontalPadding(context);
     return SliverToBoxAdapter(
       child: SizedBox(
         height: 52,
         child: ListView.separated(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: horizontal, vertical: 8),
           scrollDirection: Axis.horizontal,
           itemCount: categories.length,
           separatorBuilder: (_, __) => const SizedBox(width: 8),
@@ -147,6 +150,9 @@ class _TurfListViewState extends State<_TurfListView> {
   }
 
   Widget _buildTurfList() {
+    final columns = AppResponsive.adaptiveGridColumns(context);
+    final horizontal = AppResponsive.horizontalPadding(context);
+
     return BlocBuilder<TurfBloc, TurfState>(
       builder: (context, state) {
         if (state is TurfLoading) {
@@ -197,11 +203,15 @@ class _TurfListViewState extends State<_TurfListView> {
         }
 
         return SliverPadding(
-          padding: const EdgeInsets.all(16),
-          sliver: SliverList.separated(
-            itemCount: turfs.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (_, i) => TurfCard(turf: turfs[i]),
+          padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 16),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: columns >= 3 ? 0.96 : 0.92,
+            ),
+            delegate: SliverChildBuilderDelegate((_, i) => TurfCard(turf: turfs[i]), childCount: turfs.length),
           ),
         );
       },
@@ -209,16 +219,18 @@ class _TurfListViewState extends State<_TurfListView> {
   }
 
   Widget _buildFindPlayersSection() {
+    final horizontal = AppResponsive.horizontalPadding(context);
+    final cardWidth = AppResponsive.isTablet(context) ? 320.0 : 250.0;
     return SliverToBoxAdapter(
       child: SizedBox(
         height: 166,
         child: ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+          padding: EdgeInsets.fromLTRB(horizontal, 4, horizontal, 0),
           scrollDirection: Axis.horizontal,
           itemCount: DemoMedia.playerImages.length,
           itemBuilder: (_, i) {
             return Container(
-              width: 250,
+              width: cardWidth,
               margin: const EdgeInsets.only(right: 12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
