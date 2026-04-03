@@ -8,6 +8,13 @@ import '../models/user_model.dart';
 abstract class AuthRemoteDatasource {
   Future<void> requestOtp({required String phone});
   Future<UserModel> login({required String phone, required String otp});
+  Future<UserModel> loginWithPassword({required String email, required String password});
+  Future<UserModel> socialLogin({
+    required String provider,
+    required String providerToken,
+    required String email,
+    String? name,
+  });
   Future<UserModel> register({required String name, required String phone, required String email, required String password});
   Future<void> logout();
   Future<UserModel> getCurrentUser();
@@ -40,6 +47,49 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       body: {'phone': phone, 'otp': otp},
       parser: (json) => json as Map<String, dynamic>,
       requestKey: 'auth-login-$phone',
+      cancelPrevious: true,
+      retryPost: false,
+    );
+
+    final data = envelope.data ?? <String, dynamic>{};
+    await _saveTokens(
+      accessToken: (data['accessToken'] ?? data['access_token']) as String,
+      refreshToken: (data['refreshToken'] ?? data['refresh_token']) as String,
+    );
+    return UserModel.fromJson(data['user'] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<UserModel> loginWithPassword({required String email, required String password}) async {
+    final envelope = await _apiClient.post<Map<String, dynamic>>(
+      path: ApiEndpoints.login,
+      body: {'email': email, 'password': password},
+      parser: (json) => json as Map<String, dynamic>,
+      requestKey: 'auth-login-password-$email',
+      cancelPrevious: true,
+      retryPost: false,
+    );
+
+    final data = envelope.data ?? <String, dynamic>{};
+    await _saveTokens(
+      accessToken: (data['accessToken'] ?? data['access_token']) as String,
+      refreshToken: (data['refreshToken'] ?? data['refresh_token']) as String,
+    );
+    return UserModel.fromJson(data['user'] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<UserModel> socialLogin({
+    required String provider,
+    required String providerToken,
+    required String email,
+    String? name,
+  }) async {
+    final envelope = await _apiClient.post<Map<String, dynamic>>(
+      path: ApiEndpoints.socialLogin,
+      body: {'provider': provider, 'providerToken': providerToken, 'email': email, if (name != null) 'name': name},
+      parser: (json) => json as Map<String, dynamic>,
+      requestKey: 'auth-social-$provider-$email',
       cancelPrevious: true,
       retryPost: false,
     );

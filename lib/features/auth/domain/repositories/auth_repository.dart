@@ -8,6 +8,15 @@ abstract class AuthRepository {
 
   Future<Either<Failure, UserEntity>> login({required String phone, required String otp});
 
+  Future<Either<Failure, UserEntity>> loginWithPassword({required String email, required String password});
+
+  Future<Either<Failure, UserEntity>> socialLogin({
+    required String provider,
+    required String providerToken,
+    required String email,
+    String? name,
+  });
+
   Future<Either<Failure, UserEntity>> register({
     required String name,
     required String phone,

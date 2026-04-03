@@ -48,6 +48,48 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, UserEntity>> loginWithPassword({required String email, required String password}) async {
+    try {
+      final user = await _remoteDatasource.loginWithPassword(email: email, password: password);
+      return Right(user);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, statusCode: e.statusCode));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (_) {
+      return const Left(UnknownFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> socialLogin({
+    required String provider,
+    required String providerToken,
+    required String email,
+    String? name,
+  }) async {
+    try {
+      final user = await _remoteDatasource.socialLogin(
+        provider: provider,
+        providerToken: providerToken,
+        email: email,
+        name: name,
+      );
+      return Right(user);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, statusCode: e.statusCode));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (_) {
+      return const Left(UnknownFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, UserEntity>> register({
     required String name,
     required String phone,
