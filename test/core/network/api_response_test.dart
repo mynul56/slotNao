@@ -4,23 +4,17 @@ import 'package:turf_booking_app/core/network/api_response.dart';
 void main() {
   group('ApiResponse', () {
     test('parses wrapped success payload', () {
-      final result = ApiResponse<Map<String, dynamic>>.fromJson(
-        {
-          'status': true,
-          'data': {'name': 'SlotNao'},
-        },
-        (json) => json as Map<String, dynamic>,
-      );
+      final result = ApiResponse<Map<String, dynamic>>.fromJson({
+        'status': true,
+        'data': {'name': 'SlotNao'},
+      }, (json) => json as Map<String, dynamic>);
 
       expect(result.status, isTrue);
       expect(result.data?['name'], 'SlotNao');
     });
 
     test('parses direct payload as success', () {
-      final result = ApiResponse<Map<String, dynamic>>.fromJson(
-        {'name': 'Direct'},
-        (json) => json as Map<String, dynamic>,
-      );
+      final result = ApiResponse<Map<String, dynamic>>.fromJson({'name': 'Direct'}, (json) => json as Map<String, dynamic>);
 
       expect(result.status, isTrue);
       expect(result.data?['name'], 'Direct');

@@ -17,7 +17,11 @@ void main() {
     test('maps 401 to UnauthorizedNetworkException', () {
       final exception = DioException(
         requestOptions: RequestOptions(path: '/test'),
-        response: Response<dynamic>(requestOptions: RequestOptions(path: '/test'), statusCode: 401, data: {'message': 'Unauthorized'}),
+        response: Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          statusCode: 401,
+          data: {'message': 'Unauthorized'},
+        ),
         type: DioExceptionType.badResponse,
       );
 
