@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -9,6 +10,7 @@ enum WsConnectionState { disconnected, connecting, connected, reconnecting }
 
 class WsClient {
   final Logger _logger;
+  final FlutterSecureStorage _secureStorage;
 
   WebSocketChannel? _channel;
   WsConnectionState _state = WsConnectionState.disconnected;
@@ -19,17 +21,28 @@ class WsClient {
   final _connectionStateController = StreamController<WsConnectionState>.broadcast();
   Stream<WsConnectionState> get connectionState => _connectionStateController.stream;
 
-  WsClient({required Logger logger}) : _logger = logger;
+  WsClient({required Logger logger, required FlutterSecureStorage secureStorage})
+    : _logger = logger,
+      _secureStorage = secureStorage;
 
-  Stream<dynamic>? connect(String path, {String? token}) {
+  Future<Stream<dynamic>?> connect(String path, {String? token}) async {
     _currentPath = path;
     _state = WsConnectionState.connecting;
     _connectionStateController.add(_state);
 
     try {
-      final uri = Uri.parse(
-        '${AppConstants.wsBaseUrl}$path'
-        '${token != null ? '?token=$token' : ''}',
+      final resolvedToken = token ?? await _secureStorage.read(key: AppConstants.accessTokenKey);
+
+      final baseUri = Uri.parse(AppConstants.wsBaseUrl);
+      if (baseUri.scheme != 'wss') {
+        throw StateError('Insecure websocket URL is not allowed. Use wss://');
+      }
+
+      final uri = Uri.parse('${AppConstants.wsBaseUrl}$path').replace(
+        queryParameters: {
+          ...Uri.parse('${AppConstants.wsBaseUrl}$path').queryParameters,
+          if (resolvedToken != null) 'token': resolvedToken,
+        },
       );
 
       _channel = WebSocketChannel.connect(uri);
@@ -37,7 +50,7 @@ class WsClient {
       _connectionStateController.add(_state);
       _reconnectAttempts = 0;
 
-      _logger.i('WebSocket connected: $uri');
+      _logger.i('WebSocket connected');
       return _channel!.stream.handleError(_onError);
     } catch (e) {
       _logger.e('WebSocket connection failed', error: e);
@@ -81,8 +94,10 @@ class WsClient {
 
     _logger.i('WebSocket reconnecting in ${delay.inSeconds}s (attempt $_reconnectAttempts)');
 
-    _reconnectTimer = Timer(delay, () {
-      if (_currentPath != null) connect(_currentPath!, token: token);
+    _reconnectTimer = Timer(delay, () async {
+      if (_currentPath != null) {
+        await connect(_currentPath!, token: token);
+      }
     });
   }
 

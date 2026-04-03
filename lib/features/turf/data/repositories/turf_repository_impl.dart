@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:dartz/dartz.dart';
+
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/ws_client.dart';
@@ -12,17 +14,12 @@ class TurfRepositoryImpl implements TurfRepository {
   final TurfRemoteDatasource _remoteDatasource;
   final WsClient _wsClient;
 
-  const TurfRepositoryImpl({
-    required TurfRemoteDatasource remoteDatasource,
-    required WsClient wsClient,
-  })  : _remoteDatasource = remoteDatasource,
-        _wsClient = wsClient;
+  const TurfRepositoryImpl({required TurfRemoteDatasource remoteDatasource, required WsClient wsClient})
+    : _remoteDatasource = remoteDatasource,
+      _wsClient = wsClient;
 
   @override
-  Future<Either<Failure, List<TurfEntity>>> getTurfs({
-    int page = 1,
-    int pageSize = 20,
-  }) async {
+  Future<Either<Failure, List<TurfEntity>>> getTurfs({int page = 1, int pageSize = 20}) async {
     try {
       final turfs = await _remoteDatasource.getTurfs(page: page, pageSize: pageSize);
       return Right(turfs);
@@ -71,10 +68,7 @@ class TurfRepositoryImpl implements TurfRepository {
   }
 
   @override
-  Future<Either<Failure, List<SlotEntity>>> getTurfSlots({
-    required String turfId,
-    required DateTime date,
-  }) async {
+  Future<Either<Failure, List<SlotEntity>>> getTurfSlots({required String turfId, required DateTime date}) async {
     try {
       final slots = await _remoteDatasource.getTurfSlots(turfId: turfId, date: date);
       return Right(slots);
@@ -88,26 +82,21 @@ class TurfRepositoryImpl implements TurfRepository {
   }
 
   @override
-  Stream<Either<Failure, List<SlotEntity>>> watchSlotAvailability({
-    required String turfId,
-    required DateTime date,
-  }) async* {
+  Stream<Either<Failure, List<SlotEntity>>> watchSlotAvailability({required String turfId, required DateTime date}) async* {
     // Initial HTTP load
     final initial = await getTurfSlots(turfId: turfId, date: date);
     yield initial;
 
     // WebSocket live updates
-    final path = '/slots/$turfId/live?date=${date.toIso8601String().split('T')[0]}';
-    final stream = _wsClient.connect(path);
+    final path = '?turfId=$turfId&date=${date.toIso8601String().split('T')[0]}';
+    final stream = await _wsClient.connect(path);
     if (stream == null) return;
 
     await for (final message in stream) {
       try {
         final data = jsonDecode(message as String) as Map<String, dynamic>;
         if (data['type'] == 'slot_update') {
-          final list = (data['slots'] as List)
-              .map((e) => SlotModel.fromJson(e as Map<String, dynamic>))
-              .toList();
+          final list = (data['slots'] as List).map((e) => SlotModel.fromJson(e as Map<String, dynamic>)).toList();
           yield Right(list);
         }
       } catch (_) {

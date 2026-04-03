@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/demo_media.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -39,7 +40,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   ];
 
   Future<void> _finish() async {
-    await di.sl<SharedPreferences>().setBool('onboarding_seen', true);
+    await di.sl<SharedPreferences>().setBool(AppConstants.onboardingKey, true);
     if (!mounted) return;
     context.go(AppRoutes.login);
   }

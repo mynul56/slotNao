@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/constants/demo_media.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../injection_container.dart' as di;
@@ -40,7 +42,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
       }
       if (state is AuthUnauthenticated) {
         final prefs = di.sl<SharedPreferences>();
-        final seenOnboarding = prefs.getBool('onboarding_seen') ?? false;
+        final seenOnboarding = prefs.getBool(AppConstants.onboardingKey) ?? false;
         context.go(seenOnboarding ? AppRoutes.login : AppRoutes.onboarding);
       }
     });
@@ -57,49 +59,64 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.dark900,
-      body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnim,
-          child: ScaleTransition(
-            scale: _scaleAnim,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryGreen,
-                    borderRadius: BorderRadius.circular(28),
-                    boxShadow: [
-                      BoxShadow(color: AppTheme.primaryGreen.withValues(alpha: 0.4), blurRadius: 32, spreadRadius: 4),
-                    ],
-                  ),
-                  child: const Icon(Icons.sports_soccer_rounded, color: AppTheme.dark900, size: 52),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'SlotNao',
-                  style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: AppTheme.white, letterSpacing: 1.2),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Book your game. Own the field.',
-                  style: TextStyle(fontSize: 14, color: AppTheme.neutralGrey, letterSpacing: 0.5),
-                ),
-                const SizedBox(height: 48),
-                SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryGreen.withValues(alpha: 0.8)),
-                  ),
-                ),
-              ],
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.network(DemoMedia.stadiumImages[0], fit: BoxFit.cover),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [AppTheme.dark900.withValues(alpha: 0.45), AppTheme.dark900.withValues(alpha: 0.92)],
+              ),
             ),
           ),
-        ),
+          Center(
+            child: FadeTransition(
+              opacity: _fadeAnim,
+              child: ScaleTransition(
+                scale: _scaleAnim,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryGreen,
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(color: AppTheme.primaryGreen.withValues(alpha: 0.4), blurRadius: 32, spreadRadius: 4),
+                        ],
+                      ),
+                      child: const Icon(Icons.sports_soccer_rounded, color: AppTheme.dark900, size: 52),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'SlotNao',
+                      style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: AppTheme.white, letterSpacing: 1.2),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Book your game. Own the field.',
+                      style: TextStyle(fontSize: 14, color: AppTheme.neutralGrey, letterSpacing: 0.5),
+                    ),
+                    const SizedBox(height: 48),
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryGreen.withValues(alpha: 0.8)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

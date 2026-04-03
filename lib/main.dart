@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/router/app_router.dart';
+import 'core/security/security_config.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
@@ -12,10 +13,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Lock to portrait
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
@@ -28,6 +26,7 @@ void main() async {
   );
 
   // Initialize all dependencies
+  SecurityConfig.validateTransportConfig();
   await di.initDependencies();
 
   runApp(const SlotNaoApp());
@@ -39,12 +38,7 @@ class SlotNaoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [
-        BlocProvider<AuthBloc>(
-          create: (_) => di.sl<AuthBloc>()
-            ..add(const AuthCheckSessionRequested()),
-        ),
-      ],
+      providers: [BlocProvider<AuthBloc>(create: (_) => di.sl<AuthBloc>()..add(const AuthCheckSessionRequested()))],
       child: MaterialApp.router(
         title: 'SlotNao — Turf Booking',
         debugShowCheckedModeBanner: false,

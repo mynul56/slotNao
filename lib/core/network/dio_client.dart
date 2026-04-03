@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 
@@ -13,6 +14,11 @@ class DioClient {
   DioClient({required FlutterSecureStorage secureStorage, required Logger logger})
     : _secureStorage = secureStorage,
       _logger = logger {
+    final baseUri = Uri.parse(AppConstants.baseUrl);
+    if (baseUri.scheme != 'https') {
+      throw StateError('Insecure API URL is not allowed. Use HTTPS.');
+    }
+
     _dio = Dio(
       BaseOptions(
         baseUrl: AppConstants.baseUrl,
@@ -33,11 +39,11 @@ class DioClient {
   Dio get dio => _dio;
 
   void _setupInterceptors() {
-    _dio.interceptors.addAll([
-      _AuthInterceptor(_secureStorage, _dio, _logger),
-      _LoggingInterceptor(_logger),
-      _ErrorInterceptor(),
-    ]);
+    _dio.interceptors.add(_AuthInterceptor(_secureStorage, _dio, _logger));
+    if (!kReleaseMode) {
+      _dio.interceptors.add(_LoggingInterceptor(_logger));
+    }
+    _dio.interceptors.add(_ErrorInterceptor());
   }
 }
 
@@ -86,13 +92,14 @@ class _AuthInterceptor extends Interceptor {
     final refreshToken = await _secureStorage.read(key: AppConstants.refreshTokenKey);
     if (refreshToken == null) return false;
 
-    final response = await _dio.post(ApiEndpoints.refreshToken, data: {'refresh_token': refreshToken});
+    final response = await _dio.post(ApiEndpoints.refreshToken, data: {'refreshToken': refreshToken});
 
     if (response.statusCode == 200) {
-      final data = response.data as Map<String, dynamic>;
-      await _secureStorage.write(key: AppConstants.accessTokenKey, value: data['access_token'] as String);
-      if (data['refresh_token'] != null) {
-        await _secureStorage.write(key: AppConstants.refreshTokenKey, value: data['refresh_token'] as String);
+      final body = response.data as Map<String, dynamic>;
+      final data = (body['data'] as Map<String, dynamic>?) ?? body;
+      await _secureStorage.write(key: AppConstants.accessTokenKey, value: data['accessToken'] as String);
+      if (data['refreshToken'] != null) {
+        await _secureStorage.write(key: AppConstants.refreshTokenKey, value: data['refreshToken'] as String);
       }
       return true;
     }
