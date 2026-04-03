@@ -79,7 +79,9 @@ class _AuthInterceptor extends Interceptor {
           return;
         }
       } catch (e) {
-        _logger.e('Token refresh failed', error: e);
+        if (!kReleaseMode) {
+          _logger.e('Token refresh failed', error: e);
+        }
         await _clearTokens();
       } finally {
         _isRefreshing = false;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../responsive/app_responsive.dart';
 import '../../theme/app_theme.dart';
 
 class CustomButton extends StatefulWidget {
@@ -20,6 +21,8 @@ class _CustomButtonState extends State<CustomButton> {
   @override
   Widget build(BuildContext context) {
     final isDisabled = widget.onPressed == null || widget.isLoading;
+    final buttonHeight = AppResponsive.isTablet(context) ? 58.0 : 54.0;
+    final fontSize = AppResponsive.scaleText(context, 16);
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
@@ -32,7 +35,8 @@ class _CustomButtonState extends State<CustomButton> {
           borderRadius: BorderRadius.circular(16),
           onTap: isDisabled ? null : widget.onPressed,
           child: Ink(
-            height: 54,
+            width: double.infinity,
+            height: buttonHeight,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               gradient: isDisabled
@@ -67,9 +71,9 @@ class _CustomButtonState extends State<CustomButton> {
                         if (widget.icon != null) ...[Icon(widget.icon, color: AppTheme.dark900), const SizedBox(width: 8)],
                         Text(
                           widget.label,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppTheme.dark900,
-                            fontSize: 16,
+                            fontSize: fontSize,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.25,
                           ),

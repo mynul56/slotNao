@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../responsive/app_responsive.dart';
 import '../../theme/app_theme.dart';
 
 class InputField extends StatelessWidget {
@@ -33,7 +34,11 @@ class InputField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(color: AppTheme.lightGrey, fontWeight: FontWeight.w500, fontSize: 13),
+          style: TextStyle(
+            color: AppTheme.lightGrey,
+            fontWeight: FontWeight.w500,
+            fontSize: AppResponsive.scaleText(context, 13),
+          ),
         ),
         const SizedBox(height: 8),
         TextFormField(
