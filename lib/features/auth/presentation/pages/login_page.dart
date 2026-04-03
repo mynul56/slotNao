@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/demo_media.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/ui/responsive/app_responsive.dart';
 import '../../../../core/ui/widgets/custom_button.dart';
 import '../../../../core/ui/widgets/input_field.dart';
 import '../../../../core/utils/extensions.dart';
@@ -45,6 +46,10 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isTablet = AppResponsive.isTablet(context);
+    final horizontalPadding = AppResponsive.horizontalPadding(context);
+    final headerTopSpacing = isTablet ? 36.0 : 60.0;
+
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) context.go(AppRoutes.roleHub);
@@ -76,81 +81,99 @@ class _LoginPageState extends State<LoginPage> {
             ),
             SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Form(
                   key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 60),
-                      _buildHeader(),
-                      const SizedBox(height: 32),
-                      Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: AppTheme.dark700.withValues(alpha: 0.68),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppTheme.dark500),
-                        ),
-                        child: Column(
-                          children: [
-                            InputField(
-                              controller: _phoneCtrl,
-                              label: 'Phone Number',
-                              hint: '01XXXXXXXXX',
-                              icon: Icons.phone_rounded,
-                              keyboardType: TextInputType.phone,
-                              readOnly: _otpRequested,
-                              validator: (val) {
-                                if (val == null || val.isEmpty) return 'Phone is required';
-                                if (!val.isValidBangladeshPhone) {
-                                  return 'Enter a valid BD phone number';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            if (_otpRequested)
-                              InputField(
-                                controller: _otpCtrl,
-                                label: 'OTP Code',
-                                hint: '6-digit OTP',
-                                icon: Icons.sms_rounded,
-                                keyboardType: TextInputType.number,
-                                validator: (val) {
-                                  if (!_otpRequested) return null;
-                                  if (val == null || val.trim().isEmpty) return 'OTP is required';
-                                  if (val.trim().length != 6) return 'OTP must be 6 digits';
-                                  return null;
-                                },
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final cardMaxWidth = isTablet ? 560.0 : constraints.maxWidth;
+                      final topGap = constraints.maxHeight < 700 ? 20.0 : headerTopSpacing;
+
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: cardMaxWidth),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: topGap),
+                              _buildHeader(),
+                              SizedBox(height: isTablet ? 28 : 24),
+                              Container(
+                                padding: EdgeInsets.all(isTablet ? 24 : 18),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.dark700.withValues(alpha: 0.68),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: AppTheme.dark500),
+                                ),
+                                child: Column(
+                                  children: [
+                                    InputField(
+                                      controller: _phoneCtrl,
+                                      label: 'Phone Number',
+                                      hint: '01XXXXXXXXX',
+                                      icon: Icons.phone_rounded,
+                                      keyboardType: TextInputType.phone,
+                                      readOnly: _otpRequested,
+                                      validator: (val) {
+                                        if (val == null || val.isEmpty) return 'Phone is required';
+                                        if (!val.isValidBangladeshPhone) {
+                                          return 'Enter a valid BD phone number';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    const SizedBox(height: 16),
+                                    if (_otpRequested)
+                                      InputField(
+                                        controller: _otpCtrl,
+                                        label: 'OTP Code',
+                                        hint: '6-digit OTP',
+                                        icon: Icons.sms_rounded,
+                                        keyboardType: TextInputType.number,
+                                        validator: (val) {
+                                          if (!_otpRequested) return null;
+                                          if (val == null || val.trim().isEmpty) return 'OTP is required';
+                                          if (!RegExp(r'^\d{6}4').hasMatch(val.trim())) return 'OTP must be 6 digits';
+                                          return null;
+                                        },
+                                      ),
+                                    const SizedBox(height: 24),
+                                    BlocBuilder<AuthBloc, AuthState>(
+                                      builder: (context, state) {
+                                        return CustomButton(
+                                          onPressed: state is AuthLoading ? null : (_otpRequested ? _onVerifyOtp : _onRequestOtp),
+                                          label: _otpRequested ? 'Verify OTP & Login' : 'Send OTP',
+                                          icon: _otpRequested ? Icons.verified_user_rounded : Icons.send_rounded,
+                                          isLoading: state is AuthLoading,
+                                        );
+                                      },
+                                    ),
+                                    if (_otpRequested)
+                                      TextButton(
+                                        onPressed: () {
+                                          _otpCtrl.clear();
+                                          _onRequestOtp();
+                                        },
+                                        child: Text(
+                                          'Resend OTP',
+                                          style: TextStyle(
+                                            color: AppTheme.primaryGreen,
+                                            fontSize: AppResponsive.scaleText(context, 14),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ),
-                            const SizedBox(height: 24),
-                            BlocBuilder<AuthBloc, AuthState>(
-                              builder: (context, state) {
-                                return CustomButton(
-                                  onPressed: state is AuthLoading ? null : (_otpRequested ? _onVerifyOtp : _onRequestOtp),
-                                  label: _otpRequested ? 'Verify OTP & Login' : 'Send OTP',
-                                  icon: _otpRequested ? Icons.verified_user_rounded : Icons.send_rounded,
-                                  isLoading: state is AuthLoading,
-                                );
-                              },
-                            ),
-                            if (_otpRequested)
-                              TextButton(
-                                onPressed: () {
-                                  _otpCtrl.clear();
-                                  _onRequestOtp();
-                                },
-                                child: const Text('Resend OTP', style: TextStyle(color: AppTheme.primaryGreen)),
-                              ),
-                          ],
+                              SizedBox(height: isTablet ? 20 : 24),
+                              _buildDivider(),
+                              SizedBox(height: isTablet ? 20 : 24),
+                              _buildRegisterLink(),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildDivider(),
-                      const SizedBox(height: 24),
-                      _buildRegisterLink(),
-                    ],
+                      );
+                    },
                   ),
                 ),
               ),
@@ -176,14 +199,18 @@ class _LoginPageState extends State<LoginPage> {
           child: const Icon(Icons.sports_soccer_rounded, color: AppTheme.dark900, size: 30),
         ),
         const SizedBox(height: 24),
-        const Text(
+        Text(
           'Welcome Back! 👋',
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: AppTheme.white),
+          style: TextStyle(
+            fontSize: AppResponsive.scaleText(context, 28),
+            fontWeight: FontWeight.w700,
+            color: AppTheme.white,
+          ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Sign in with your phone OTP to book your turf slot',
-          style: TextStyle(fontSize: 15, color: AppTheme.neutralGrey),
+          style: TextStyle(fontSize: AppResponsive.scaleText(context, 15), color: AppTheme.neutralGrey),
         ),
       ],
     );
