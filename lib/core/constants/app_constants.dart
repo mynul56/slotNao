@@ -45,6 +45,11 @@ class AppConstants {
   // Feature flags
   static const bool enableRealtime = true;
   static const bool enablePushNotifications = true;
+  static const bool frontendOnlyMode = bool.fromEnvironment('FRONTEND_ONLY_MODE', defaultValue: true);
+
+  // Demo auth (used in frontend-only mode)
+  static const String demoEmail = 'demo@slotnao.com';
+  static const String demoPassword = 'Demo@12345';
 
   // Security hardening flags
   static const bool blockCompromisedDevices = bool.fromEnvironment('BLOCK_COMPROMISED_DEVICES', defaultValue: true);

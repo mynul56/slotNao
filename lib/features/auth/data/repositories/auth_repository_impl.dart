@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/user_entity.dart';
@@ -8,6 +9,8 @@ import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
+  static UserEntity? _frontendSessionUser;
+
   final AuthRemoteDatasource _remoteDatasource;
   final FlutterSecureStorage _secureStorage;
 
@@ -17,6 +20,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, void>> verifyOtp({required String email, required String otp}) async {
+    if (AppConstants.frontendOnlyMode) {
+      return const Right(null);
+    }
     try {
       await _remoteDatasource.verifyOtp(email: email, otp: otp);
       return const Right(null);
@@ -33,6 +39,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, UserEntity>> login({required String email, required String password}) async {
+    if (AppConstants.frontendOnlyMode) {
+      final user = _demoUser(email: email);
+      _frontendSessionUser = user;
+      return Right(user);
+    }
     try {
       final user = await _remoteDatasource.login(email: email, password: password);
       return Right(user);
@@ -54,6 +65,11 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     String? name,
   }) async {
+    if (AppConstants.frontendOnlyMode) {
+      final user = _demoUser(email: email, name: name ?? 'Demo User');
+      _frontendSessionUser = user;
+      return Right(user);
+    }
     try {
       final user = await _remoteDatasource.socialLogin(
         provider: provider,
@@ -80,6 +96,9 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
   }) async {
+    if (AppConstants.frontendOnlyMode) {
+      return Right(_demoUser(email: email, name: name, phone: phone));
+    }
     try {
       final user = await _remoteDatasource.register(name: name, phone: phone, email: email, password: password);
       return Right(user);
@@ -96,6 +115,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, void>> logout() async {
+    if (AppConstants.frontendOnlyMode) {
+      _frontendSessionUser = null;
+      await _secureStorage.deleteAll();
+      return const Right(null);
+    }
     try {
       await _remoteDatasource.logout();
       return const Right(null);
@@ -108,6 +132,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, UserEntity>> getCurrentUser() async {
+    if (AppConstants.frontendOnlyMode) {
+      final user = _frontendSessionUser;
+      if (user == null) {
+        return const Left(AuthFailure(message: 'No active demo session'));
+      }
+      return Right(user);
+    }
     try {
       final user = await _remoteDatasource.getCurrentUser();
       return Right(user);
@@ -124,6 +155,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, void>> forgotPassword(String email) async {
+    if (AppConstants.frontendOnlyMode) {
+      return const Right(null);
+    }
     try {
       await _remoteDatasource.forgotPassword(email: email);
       return const Right(null);
@@ -139,7 +173,14 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, void>> resetPassword({required String email, required String token, required String newPassword}) async {
+  Future<Either<Failure, void>> resetPassword({
+    required String email,
+    required String token,
+    required String newPassword,
+  }) async {
+    if (AppConstants.frontendOnlyMode) {
+      return const Right(null);
+    }
     try {
       await _remoteDatasource.resetPassword(email: email, token: token, newPassword: newPassword);
       return const Right(null);
@@ -152,5 +193,16 @@ class AuthRepositoryImpl implements AuthRepository {
     } catch (_) {
       return const Left(UnknownFailure());
     }
+  }
+
+  UserEntity _demoUser({required String email, String name = 'Demo User', String? phone}) {
+    return UserEntity(
+      id: 'demo-user-1',
+      name: name,
+      email: email,
+      phone: phone ?? '01700000000',
+      role: UserRole.player,
+      createdAt: DateTime.now(),
+    );
   }
 }
