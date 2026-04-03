@@ -105,10 +105,10 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                             hint: '123456',
                             icon: Icons.verified_user_rounded,
                             keyboardType: TextInputType.number,
-                                validator: (val) {
-                                  if (val == null || val.trim().isEmpty) {
-                                    return 'Code is required';
-                                  }
+                            validator: (val) {
+                              if (val == null || val.trim().isEmpty) {
+                                return 'Code is required';
+                              }
                               final normalized = val.trim();
                               if (normalized.length != 6 || int.tryParse(normalized) == null)
                                 return 'Enter a valid 6-digit code';
