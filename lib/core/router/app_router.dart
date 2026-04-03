@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/admin/presentation/pages/admin_shell_page.dart';
-import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
@@ -12,12 +10,10 @@ import '../../features/auth/presentation/pages/onboarding_page.dart';
 import '../../features/auth/presentation/pages/otp_verification_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/reset_password_page.dart';
-import '../../features/auth/presentation/pages/role_hub_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/booking/presentation/pages/booking_confirmation_page.dart';
 import '../../features/booking/presentation/pages/booking_page.dart';
 import '../../features/booking/presentation/pages/my_bookings_page.dart';
-import '../../features/owner/presentation/pages/owner_shell_page.dart';
 import '../../features/payment/presentation/pages/payment_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/turf/presentation/pages/turf_detail_page.dart';
@@ -42,7 +38,7 @@ final GoRouter appRouter = GoRouter(
 
     if (!isAuthenticated && !isAuthRoute) return AppRoutes.login;
     if (isAuthenticated && isAuthRoute && state.matchedLocation != AppRoutes.splash) {
-      return _postAuthRoute(authState.user.role);
+      return AppRoutes.home;
     }
     return null;
   },
@@ -66,7 +62,6 @@ final GoRouter appRouter = GoRouter(
         return OtpVerificationPage(email: email);
       },
     ),
-    GoRoute(path: AppRoutes.roleHub, name: 'roleHub', builder: (_, __) => const RoleHubPage()),
     GoRoute(
       path: AppRoutes.home,
       name: 'home',
@@ -104,8 +99,6 @@ final GoRouter appRouter = GoRouter(
         GoRoute(path: 'profile', name: 'profile', builder: (_, __) => const ProfilePage()),
       ],
     ),
-    GoRoute(path: AppRoutes.ownerHome, name: 'ownerHome', builder: (_, __) => const OwnerShellPage()),
-    GoRoute(path: AppRoutes.adminHome, name: 'adminHome', builder: (_, __) => const AdminShellPage()),
   ],
   errorBuilder: (context, state) => Scaffold(
     body: Center(
@@ -121,14 +114,3 @@ final GoRouter appRouter = GoRouter(
     ),
   ),
 );
-
-String _postAuthRoute(UserRole role) {
-  switch (role) {
-    case UserRole.owner:
-      return AppRoutes.ownerHome;
-    case UserRole.admin:
-      return AppRoutes.adminHome;
-    case UserRole.player:
-      return AppRoutes.home;
-  }
-}

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 import '../errors/exceptions.dart';
@@ -13,6 +15,10 @@ class NoInternetNetworkException extends NetworkException implements AppNetworkE
 
 class TimeoutNetworkException extends NetworkException implements AppNetworkException {
   const TimeoutNetworkException() : super(message: 'Request timeout. Please try again.');
+}
+
+class ServiceUnavailableNetworkException extends NetworkException implements AppNetworkException {
+  const ServiceUnavailableNetworkException() : super(message: 'Unable to reach server. Please try again in a moment.');
 }
 
 class UnauthorizedNetworkException extends AuthException implements AppNetworkException {
@@ -37,7 +43,7 @@ class NetworkExceptionMapper {
   static Exception fromDio(DioException e) {
     switch (e.type) {
       case DioExceptionType.connectionError:
-        return const NoInternetNetworkException();
+        return _fromConnectionError(e);
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.receiveTimeout:
       case DioExceptionType.sendTimeout:
@@ -54,6 +60,28 @@ class NetworkExceptionMapper {
           data: e.response?.data,
         );
     }
+  }
+
+  static Exception _fromConnectionError(DioException e) {
+    final error = e.error;
+    if (error is SocketException) {
+      final details = error.message.toLowerCase();
+      final isInternetDown =
+          details.contains('network is unreachable') ||
+          details.contains('no route to host') ||
+          details.contains('not connected');
+      if (isInternetDown) {
+        return const NoInternetNetworkException();
+      }
+      return const ServiceUnavailableNetworkException();
+    }
+
+    final message = (e.message ?? '').toLowerCase();
+    if (message.contains('failed host lookup') || message.contains('connection refused')) {
+      return const ServiceUnavailableNetworkException();
+    }
+
+    return const NoInternetNetworkException();
   }
 
   static Exception _fromBadResponse(Response<dynamic>? response) {

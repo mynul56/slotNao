@@ -10,7 +10,6 @@ import '../../../../core/ui/responsive/app_responsive.dart';
 import '../../../../core/ui/widgets/custom_button.dart';
 import '../../../../core/ui/widgets/input_field.dart';
 import '../../../../core/utils/extensions.dart';
-import '../../domain/entities/user_entity.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -23,10 +22,20 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  static const String _demoEmail = 'demo@slotnao.com';
+  static const String _demoPassword = 'Demo@12345';
+
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailCtrl.text = _demoEmail;
+    _passwordCtrl.text = _demoPassword;
+  }
 
   @override
   void dispose() {
@@ -60,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          context.go(_postAuthRoute(state.user.role));
+          context.go(AppRoutes.home);
         }
         if (state is AuthFailureState) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
@@ -143,6 +152,20 @@ class _LoginPageState extends State<LoginPage> {
                                         if (!val.isValidPassword) return 'Minimum 8 characters';
                                         return null;
                                       },
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.dark600.withValues(alpha: 0.75),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: AppTheme.dark500),
+                                      ),
+                                      child: const Text(
+                                        'Demo login: demo@slotnao.com / Demo@12345',
+                                        style: TextStyle(color: AppTheme.lightGrey, fontSize: 12),
+                                      ),
                                     ),
                                     const SizedBox(height: 8),
                                     Align(
@@ -281,16 +304,5 @@ class _LoginPageState extends State<LoginPage> {
         ],
       ),
     );
-  }
-
-  String _postAuthRoute(UserRole role) {
-    switch (role) {
-      case UserRole.owner:
-        return AppRoutes.ownerHome;
-      case UserRole.admin:
-        return AppRoutes.adminHome;
-      case UserRole.player:
-        return AppRoutes.home;
-    }
   }
 }

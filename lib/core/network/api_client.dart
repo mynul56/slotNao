@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 
@@ -30,7 +31,7 @@ class ApiClient {
     required RequestCanceler requestCanceler,
   }) {
     final baseUri = Uri.parse(AppConstants.baseUrl);
-    if (baseUri.scheme != 'https') {
+    if (baseUri.scheme != 'https' && kReleaseMode) {
       throw StateError('Insecure API URL is not allowed. Use HTTPS.');
     }
 

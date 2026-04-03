@@ -20,7 +20,8 @@ class DeviceSecurityService {
       }
     }
 
-    if (AppConstants.blockCompromisedDevices && (jailbroken || developerMode)) {
+    // Enforce strict device policy only in release builds.
+    if (kReleaseMode && AppConstants.blockCompromisedDevices && (jailbroken || developerMode)) {
       throw StateError('This device does not meet security requirements.');
     }
   }

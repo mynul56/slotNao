@@ -10,7 +10,6 @@ import '../../../../core/constants/demo_media.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../injection_container.dart' as di;
-import '../../domain/entities/user_entity.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_state.dart';
 
@@ -38,7 +37,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
     _authSub = context.read<AuthBloc>().stream.listen((state) async {
       if (!mounted) return;
       if (state is AuthAuthenticated) {
-        context.go(_postAuthRoute(state.user.role));
+        context.go(AppRoutes.home);
         return;
       }
       if (state is AuthUnauthenticated) {
@@ -124,16 +123,5 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
         ],
       ),
     );
-  }
-
-  String _postAuthRoute(UserRole role) {
-    switch (role) {
-      case UserRole.owner:
-        return AppRoutes.ownerHome;
-      case UserRole.admin:
-        return AppRoutes.adminHome;
-      case UserRole.player:
-        return AppRoutes.home;
-    }
   }
 }

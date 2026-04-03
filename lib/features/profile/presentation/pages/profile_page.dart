@@ -160,7 +160,6 @@ class _ProfileView extends StatelessWidget {
   Widget _buildMenuSection(BuildContext context) {
     final items = [
       _MenuItem(icon: Icons.calendar_month_rounded, title: 'My Bookings', onTap: () => context.push(AppRoutes.myBookings)),
-      _MenuItem(icon: Icons.swap_horiz_rounded, title: 'Switch Workspace', onTap: () => context.go(AppRoutes.roleHub)),
       _MenuItem(icon: Icons.notifications_rounded, title: 'Notifications', onTap: () {}),
       _MenuItem(icon: Icons.help_outline_rounded, title: 'Help & Support', onTap: () {}),
       _MenuItem(icon: Icons.privacy_tip_rounded, title: 'Privacy Policy', onTap: () {}),

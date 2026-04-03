@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,8 +31,8 @@ void main() async {
     await CertificatePinningService.validatePinnedCertificate();
     await DeviceSecurityService.validateDeviceIntegrity();
     await di.initDependencies();
-  } catch (_) {
-    startupError = 'Unable to start app on this device due to security policy.';
+  } catch (e) {
+    startupError = kDebugMode ? 'Startup blocked: $e' : 'Unable to start app on this device due to security policy.';
   }
 
   runApp(SlotNaoApp(startupError: startupError));

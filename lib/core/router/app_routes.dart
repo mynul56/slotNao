@@ -10,10 +10,7 @@ class AppRoutes {
   static const String verifyOtp = '/verify-otp';
   static const String forgotPassword = '/forgot-password';
   static const String resetPassword = '/reset-password';
-  static const String roleHub = '/role-hub';
   static const String home = '/home';
-  static const String ownerHome = '/owner';
-  static const String adminHome = '/admin';
   static const String turfDetail = '/home/turf/:id';
   static const String booking = '/home/turf/:id/book';
   static const String myBookings = '/home/bookings';

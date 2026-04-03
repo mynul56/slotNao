@@ -7,8 +7,8 @@ class AppConstants {
   static const String packageName = 'com.slotnao.turf';
 
   // API
-  static const String baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'https://api.slotnao.com/v1');
-  static const String wsBaseUrl = String.fromEnvironment('WS_BASE_URL', defaultValue: 'wss://api.slotnao.com/ws');
+  static const String baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://localhost:8080');
+  static const String wsBaseUrl = String.fromEnvironment('WS_BASE_URL', defaultValue: 'ws://localhost:8080/ws');
   static const String pinnedCertSha256 = String.fromEnvironment('PINNED_CERT_SHA256', defaultValue: '');
 
   // Timeouts

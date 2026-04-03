@@ -17,11 +17,14 @@ class SecurityConfig {
     final api = Uri.parse(AppConstants.baseUrl);
     final ws = Uri.parse(AppConstants.wsBaseUrl);
 
-    if (api.scheme != 'https') {
-      throw StateError('Insecure API URL is not allowed. Use HTTPS.');
-    }
-    if (ws.scheme != 'wss') {
-      throw StateError('Insecure WebSocket URL is not allowed. Use WSS.');
+    // Keep strict transport only for production. Local/dev can run on HTTP/WS.
+    if (kReleaseMode) {
+      if (api.scheme != 'https') {
+        throw StateError('Insecure API URL is not allowed. Use HTTPS.');
+      }
+      if (ws.scheme != 'wss') {
+        throw StateError('Insecure WebSocket URL is not allowed. Use WSS.');
+      }
     }
 
     // Pinning can be relaxed in local/dev, but must exist in release.
