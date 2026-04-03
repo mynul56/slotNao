@@ -62,7 +62,11 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.network(DemoMedia.stadiumImages[0], fit: BoxFit.cover),
+          Image.network(
+            DemoMedia.stadiumImages[0], 
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const ColoredBox(color: AppTheme.dark900),
+          ),
           DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
