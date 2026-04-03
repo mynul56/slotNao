@@ -1,10 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/demo_media.dart';
-import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/ui/responsive/app_responsive.dart';
 import '../../../../injection_container.dart' as di;
@@ -100,12 +98,8 @@ class _TurfListViewState extends State<_TurfListView> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.person_rounded, color: AppTheme.white),
-          onPressed: () => context.push(AppRoutes.profile),
-        ),
-        IconButton(
-          icon: const Icon(Icons.calendar_month_rounded, color: AppTheme.white),
-          onPressed: () => context.push(AppRoutes.myBookings),
+          icon: const Icon(Icons.notifications_rounded, color: AppTheme.white),
+          onPressed: () {},
         ),
         const SizedBox(width: 4),
       ],
@@ -203,7 +197,7 @@ class _TurfListViewState extends State<_TurfListView> {
         }
 
         return SliverPadding(
-          padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 16),
+          padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 108),
           sliver: SliverGrid(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: columns,

@@ -14,6 +14,8 @@ import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/booking/presentation/pages/booking_confirmation_page.dart';
 import '../../features/booking/presentation/pages/booking_page.dart';
 import '../../features/booking/presentation/pages/my_bookings_page.dart';
+import '../../features/home/presentation/pages/user_shell_page.dart';
+import '../../features/home/presentation/pages/user_tab_placeholder_page.dart';
 import '../../features/payment/presentation/pages/payment_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/turf/presentation/pages/turf_detail_page.dart';
@@ -62,42 +64,52 @@ final GoRouter appRouter = GoRouter(
         return OtpVerificationPage(email: email);
       },
     ),
-    GoRoute(
-      path: AppRoutes.home,
-      name: 'home',
-      builder: (_, __) => const TurfListPage(),
+    ShellRoute(
+      builder: (context, state, child) => UserShellPage(location: state.matchedLocation, child: child),
       routes: [
+        GoRoute(path: AppRoutes.home, name: 'home', builder: (_, __) => const TurfListPage()),
         GoRoute(
-          path: 'turf/:id',
-          name: 'turfDetail',
-          builder: (_, state) => TurfDetailPage(turfId: state.pathParameters['id']!),
-          routes: [
-            GoRoute(
-              path: 'book',
-              name: 'booking',
-              builder: (_, state) => BookingPage(turfId: state.pathParameters['id']!),
-            ),
-          ],
+          path: AppRoutes.explore,
+          name: 'explore',
+          builder: (_, __) => const UserTabPlaceholderPage(
+            title: 'Explore',
+            subtitle: 'Discover nearby teams, events, and trending arenas.',
+            icon: Icons.grid_view_rounded,
+          ),
         ),
+        GoRoute(path: AppRoutes.schedule, name: 'schedule', builder: (_, __) => const MyBookingsPage()),
         GoRoute(
-          path: 'bookings',
-          name: 'myBookings',
-          builder: (_, __) => const MyBookingsPage(),
-          routes: [
-            GoRoute(
-              path: ':bookingId/confirm',
-              name: 'bookingConfirmation',
-              builder: (_, state) => BookingConfirmationPage(bookingId: state.pathParameters['bookingId']!),
-            ),
-          ],
+          path: AppRoutes.wallet,
+          name: 'wallet',
+          builder: (_, __) => const UserTabPlaceholderPage(
+            title: 'Wallet',
+            subtitle: 'Track payments, refunds, and credits in one place.',
+            icon: Icons.account_balance_wallet_rounded,
+          ),
         ),
-        GoRoute(
-          path: 'payment',
-          name: 'payment',
-          builder: (_, state) => PaymentPage(extra: state.extra as Map<String, dynamic>),
-        ),
-        GoRoute(path: 'profile', name: 'profile', builder: (_, __) => const ProfilePage()),
+        GoRoute(path: AppRoutes.profile, name: 'profile', builder: (_, __) => const ProfilePage()),
       ],
+    ),
+    GoRoute(
+      path: AppRoutes.turfDetail,
+      name: 'turfDetail',
+      builder: (_, state) => TurfDetailPage(turfId: state.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: AppRoutes.booking,
+      name: 'booking',
+      builder: (_, state) => BookingPage(turfId: state.pathParameters['id']!),
+    ),
+    GoRoute(path: AppRoutes.myBookings, name: 'myBookings', builder: (_, __) => const MyBookingsPage()),
+    GoRoute(
+      path: AppRoutes.bookingConfirmation,
+      name: 'bookingConfirmation',
+      builder: (_, state) => BookingConfirmationPage(bookingId: state.pathParameters['bookingId']!),
+    ),
+    GoRoute(
+      path: AppRoutes.payment,
+      name: 'payment',
+      builder: (_, state) => PaymentPage(extra: state.extra as Map<String, dynamic>),
     ),
   ],
   errorBuilder: (context, state) => Scaffold(

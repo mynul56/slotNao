@@ -11,6 +11,9 @@ class AppRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String resetPassword = '/reset-password';
   static const String home = '/home';
+  static const String explore = '/home/explore';
+  static const String schedule = '/home/schedule';
+  static const String wallet = '/home/wallet';
   static const String turfDetail = '/home/turf/:id';
   static const String booking = '/home/turf/:id/book';
   static const String myBookings = '/home/bookings';
