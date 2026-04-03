@@ -1,6 +1,5 @@
-import 'package:dio/dio.dart';
 import '../../../../core/constants/api_endpoints.dart';
-import '../../../../core/network/api_error_parser.dart';
+import '../../../../core/network/api_client.dart';
 import '../models/booking_model.dart';
 
 abstract class BookingRemoteDatasource {
@@ -17,8 +16,8 @@ abstract class BookingRemoteDatasource {
 }
 
 class BookingRemoteDatasourceImpl implements BookingRemoteDatasource {
-  final Dio _dio;
-  const BookingRemoteDatasourceImpl({required Dio dio}) : _dio = dio;
+  final ApiClient _apiClient;
+  const BookingRemoteDatasourceImpl({required ApiClient apiClient}) : _apiClient = apiClient;
 
   @override
   Future<BookingModel> createBooking({
@@ -27,62 +26,45 @@ class BookingRemoteDatasourceImpl implements BookingRemoteDatasource {
     required DateTime slotStart,
     required DateTime slotEnd,
   }) async {
-    try {
-      final response = await _dio.post(
-        ApiEndpoints.bookings,
-        data: {
-          'turf_id': turfId,
-          'slot_id': slotId,
-          'slot_start': slotStart.toIso8601String(),
-          'slot_end': slotEnd.toIso8601String(),
-        },
-      );
-      return BookingModel.fromJson(response.data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw ApiErrorParser.parse(e);
-    }
+    final envelope = await _apiClient.post<Map<String, dynamic>>(
+      path: ApiEndpoints.bookings,
+      body: {
+        'turf_id': turfId,
+        'slot_id': slotId,
+        'slot_start': slotStart.toIso8601String(),
+        'slot_end': slotEnd.toIso8601String(),
+      },
+      parser: (json) => json as Map<String, dynamic>,
+      retryPost: false,
+    );
+    return BookingModel.fromJson(envelope.data ?? <String, dynamic>{});
   }
 
   @override
-  Future<List<BookingModel>> getBookings({
-    String? status,
-    int page = 1,
-  }) async {
-    try {
-      final response = await _dio.get(
-        ApiEndpoints.bookings,
-        queryParameters: {
-          if (status != null) 'status': status,
-          'page': page,
-        },
-      );
-      final mapData = response.data as Map<String, dynamic>;
-      final list = mapData['data'] as List;
-      return list
-          .map((e) => BookingModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw ApiErrorParser.parse(e);
-    }
+  Future<List<BookingModel>> getBookings({String? status, int page = 1}) async {
+    final paginated = await _apiClient.getPaginated<BookingModel>(
+      path: ApiEndpoints.bookings,
+      queryParameters: {if (status != null) 'status': status},
+      itemParser: (e) => BookingModel.fromJson(e as Map<String, dynamic>),
+      page: page,
+      pageSize: 20,
+    );
+    return paginated.items;
   }
 
   @override
   Future<BookingModel> getBookingDetail(String bookingId) async {
-    try {
-      final response =
-          await _dio.get(ApiEndpoints.bookingById(bookingId));
-      return BookingModel.fromJson(response.data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw ApiErrorParser.parse(e);
-    }
+    final envelope = await _apiClient.get<Map<String, dynamic>>(
+      path: ApiEndpoints.bookingById(bookingId),
+      parser: (json) => json as Map<String, dynamic>,
+      requestKey: 'booking-detail-$bookingId',
+      cacheTtlSeconds: 30,
+    );
+    return BookingModel.fromJson(envelope.data ?? <String, dynamic>{});
   }
 
   @override
   Future<void> cancelBooking(String bookingId) async {
-    try {
-      await _dio.post(ApiEndpoints.cancelBooking(bookingId));
-    } on DioException catch (e) {
-      throw ApiErrorParser.parse(e);
-    }
+    await _apiClient.post<void>(path: ApiEndpoints.cancelBooking(bookingId), parser: (_) {});
   }
 }

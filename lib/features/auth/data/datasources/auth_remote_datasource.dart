@@ -1,9 +1,8 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/network/api_error_parser.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_endpoints.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDatasource {
@@ -15,37 +14,42 @@ abstract class AuthRemoteDatasource {
 }
 
 class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
-  final Dio _dio;
+  final ApiClient _apiClient;
   final FlutterSecureStorage _secureStorage;
 
-  const AuthRemoteDatasourceImpl({required Dio dio, required FlutterSecureStorage secureStorage})
-    : _dio = dio,
+  const AuthRemoteDatasourceImpl({required ApiClient apiClient, required FlutterSecureStorage secureStorage})
+    : _apiClient = apiClient,
       _secureStorage = secureStorage;
 
   @override
   Future<void> requestOtp({required String phone}) async {
-    try {
-      await _dio.post(ApiEndpoints.requestOtp, data: {'phone': phone});
-    } on DioException catch (e) {
-      throw ApiErrorParser.parse(e);
-    }
+    await _apiClient.post<void>(
+      path: ApiEndpoints.requestOtp,
+      body: {'phone': phone},
+      parser: (_) {},
+      requestKey: 'auth-request-otp-$phone',
+      cancelPrevious: true,
+      retryPost: true,
+    );
   }
 
   @override
   Future<UserModel> login({required String phone, required String otp}) async {
-    try {
-      final response = await _dio.post(ApiEndpoints.login, data: {'phone': phone, 'otp': otp});
+    final envelope = await _apiClient.post<Map<String, dynamic>>(
+      path: ApiEndpoints.login,
+      body: {'phone': phone, 'otp': otp},
+      parser: (json) => json as Map<String, dynamic>,
+      requestKey: 'auth-login-$phone',
+      cancelPrevious: true,
+      retryPost: false,
+    );
 
-      final body = response.data as Map<String, dynamic>;
-      final data = (body['data'] as Map<String, dynamic>?) ?? body;
-      await _saveTokens(
-        accessToken: (data['accessToken'] ?? data['access_token']) as String,
-        refreshToken: (data['refreshToken'] ?? data['refresh_token']) as String,
-      );
-      return UserModel.fromJson(data['user'] as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw ApiErrorParser.parse(e);
-    }
+    final data = envelope.data ?? <String, dynamic>{};
+    await _saveTokens(
+      accessToken: (data['accessToken'] ?? data['access_token']) as String,
+      refreshToken: (data['refreshToken'] ?? data['refresh_token']) as String,
+    );
+    return UserModel.fromJson(data['user'] as Map<String, dynamic>);
   }
 
   @override
@@ -55,30 +59,27 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     required String email,
     required String password,
   }) async {
-    try {
-      final response = await _dio.post(
-        ApiEndpoints.register,
-        data: {'name': name, 'phone': phone, 'email': email, 'password': password},
-      );
+    final envelope = await _apiClient.post<Map<String, dynamic>>(
+      path: ApiEndpoints.register,
+      body: {'name': name, 'phone': phone, 'email': email, 'password': password},
+      parser: (json) => json as Map<String, dynamic>,
+      requestKey: 'auth-register-$phone',
+      cancelPrevious: true,
+      retryPost: false,
+    );
 
-      final body = response.data as Map<String, dynamic>;
-      final data = (body['data'] as Map<String, dynamic>?) ?? body;
-      await _saveTokens(
-        accessToken: (data['accessToken'] ?? data['access_token']) as String,
-        refreshToken: (data['refreshToken'] ?? data['refresh_token']) as String,
-      );
-      return UserModel.fromJson(data['user'] as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw ApiErrorParser.parse(e);
-    }
+    final data = envelope.data ?? <String, dynamic>{};
+    await _saveTokens(
+      accessToken: (data['accessToken'] ?? data['access_token']) as String,
+      refreshToken: (data['refreshToken'] ?? data['refresh_token']) as String,
+    );
+    return UserModel.fromJson(data['user'] as Map<String, dynamic>);
   }
 
   @override
   Future<void> logout() async {
     try {
-      await _dio.post(ApiEndpoints.logout);
-    } on DioException catch (e) {
-      throw ApiErrorParser.parse(e);
+      await _apiClient.post<void>(path: ApiEndpoints.logout, parser: (_) {});
     } finally {
       await _clearTokens();
     }
@@ -86,14 +87,13 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
 
   @override
   Future<UserModel> getCurrentUser() async {
-    try {
-      final response = await _dio.get(ApiEndpoints.profile);
-      final body = response.data as Map<String, dynamic>;
-      final data = (body['data'] as Map<String, dynamic>?) ?? body;
-      return UserModel.fromJson(data);
-    } on DioException catch (e) {
-      throw ApiErrorParser.parse(e);
-    }
+    final envelope = await _apiClient.get<Map<String, dynamic>>(
+      path: ApiEndpoints.profile,
+      parser: (json) => json as Map<String, dynamic>,
+      requestKey: 'auth-current-user',
+      cancelPrevious: true,
+    );
+    return UserModel.fromJson(envelope.data ?? <String, dynamic>{});
   }
 
   Future<void> _saveTokens({required String accessToken, required String refreshToken}) async {

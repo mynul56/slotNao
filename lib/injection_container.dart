@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -5,7 +6,9 @@ import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'core/network/dio_client.dart';
+import 'core/network/api_client.dart';
+import 'core/network/network_info.dart';
+import 'core/network/request_canceler.dart';
 import 'core/network/ws_client.dart';
 // Auth
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
@@ -63,15 +66,18 @@ Future<void> initDependencies() async {
   );
 
   // ── Core ──────────────────────────────────────────────────────────────
-  sl.registerSingleton<DioClient>(DioClient(secureStorage: sl(), logger: sl()));
+  sl.registerSingleton<Connectivity>(Connectivity());
+  sl.registerSingleton<NetworkInfo>(NetworkInfo(connectivity: sl()));
+  sl.registerSingleton<RequestCanceler>(RequestCanceler());
+  sl.registerSingleton<ApiClient>(ApiClient(secureStorage: sl(), logger: sl(), networkInfo: sl(), requestCanceler: sl()));
 
   sl.registerSingleton<WsClient>(WsClient(logger: sl(), secureStorage: sl()));
 
-  sl.registerSingleton<Dio>(sl<DioClient>().dio);
+  sl.registerSingleton<Dio>(sl<ApiClient>().dio);
 
   // ── Auth ──────────────────────────────────────────────────────────────
   sl
-    ..registerLazySingleton<AuthRemoteDatasource>(() => AuthRemoteDatasourceImpl(dio: sl(), secureStorage: sl()))
+    ..registerLazySingleton<AuthRemoteDatasource>(() => AuthRemoteDatasourceImpl(apiClient: sl(), secureStorage: sl()))
     ..registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(remoteDatasource: sl(), secureStorage: sl()))
     ..registerLazySingleton(() => RequestOtpUseCase(sl()))
     ..registerLazySingleton(() => LoginUseCase(sl()))
@@ -90,7 +96,7 @@ Future<void> initDependencies() async {
 
   // ── Turf ──────────────────────────────────────────────────────────────
   sl
-    ..registerLazySingleton<TurfRemoteDatasource>(() => TurfRemoteDatasourceImpl(dio: sl()))
+    ..registerLazySingleton<TurfRemoteDatasource>(() => TurfRemoteDatasourceImpl(apiClient: sl()))
     ..registerLazySingleton<TurfRepository>(() => TurfRepositoryImpl(remoteDatasource: sl(), wsClient: sl()))
     ..registerLazySingleton(() => GetTurfsUseCase(sl()))
     ..registerLazySingleton(() => GetTurfDetailUseCase(sl()))
@@ -101,7 +107,7 @@ Future<void> initDependencies() async {
 
   // ── Booking ───────────────────────────────────────────────────────────
   sl
-    ..registerLazySingleton<BookingRemoteDatasource>(() => BookingRemoteDatasourceImpl(dio: sl()))
+    ..registerLazySingleton<BookingRemoteDatasource>(() => BookingRemoteDatasourceImpl(apiClient: sl()))
     ..registerLazySingleton<BookingRepository>(() => BookingRepositoryImpl(remoteDatasource: sl()))
     ..registerLazySingleton(() => CreateBookingUseCase(sl()))
     ..registerLazySingleton(() => GetBookingsUseCase(sl()))
@@ -110,7 +116,7 @@ Future<void> initDependencies() async {
 
   // ── Payment ───────────────────────────────────────────────────────────
   sl
-    ..registerLazySingleton<PaymentRemoteDatasource>(() => PaymentRemoteDatasourceImpl(dio: sl()))
+    ..registerLazySingleton<PaymentRemoteDatasource>(() => PaymentRemoteDatasourceImpl(apiClient: sl()))
     ..registerLazySingleton<PaymentRepository>(() => PaymentRepositoryImpl(remoteDatasource: sl()))
     ..registerLazySingleton(() => InitPaymentUseCase(sl()))
     ..registerLazySingleton(() => ConfirmPaymentUseCase(sl()))
@@ -118,7 +124,7 @@ Future<void> initDependencies() async {
 
   // ── Profile ───────────────────────────────────────────────────────────
   sl
-    ..registerLazySingleton<ProfileRemoteDatasource>(() => ProfileRemoteDatasourceImpl(dio: sl()))
+    ..registerLazySingleton<ProfileRemoteDatasource>(() => ProfileRemoteDatasourceImpl(apiClient: sl()))
     ..registerLazySingleton<ProfileRepository>(() => ProfileRepositoryImpl(remoteDatasource: sl()))
     ..registerLazySingleton(() => GetProfileUseCase(sl()))
     ..registerLazySingleton(() => UpdateProfileUseCase(sl()))
