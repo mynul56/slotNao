@@ -110,8 +110,9 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                                 return 'Code is required';
                               }
                               final normalized = val.trim();
-                              if (normalized.length != 6 || int.tryParse(normalized) == null)
+                              if (normalized.length != 6 || int.tryParse(normalized) == null) {
                                 return 'Enter a valid 6-digit code';
+                              }
                               return null;
                             },
                           ),
