@@ -6,9 +6,11 @@ import '../../../../core/network/api_endpoints.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDatasource {
-  Future<void> requestOtp({required String phone});
-  Future<UserModel> login({required String phone, required String otp});
-  Future<UserModel> loginWithPassword({required String email, required String password});
+  Future<void> requestOtp({required String email}); // Used for resend OTP if needed
+  Future<void> verifyOtp({required String email, required String otp});
+  Future<void> forgotPassword({required String email});
+  Future<void> resetPassword({required String email, required String token, required String newPassword});
+  Future<UserModel> login({required String email, required String password});
   Future<UserModel> socialLogin({
     required String provider,
     required String providerToken,
@@ -29,38 +31,55 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       _secureStorage = secureStorage;
 
   @override
-  Future<void> requestOtp({required String phone}) async {
+  Future<void> requestOtp({required String email}) async {
     await _apiClient.post<void>(
       path: ApiEndpoints.requestOtp,
-      body: {'phone': phone},
+      body: {'email': email},
       parser: (_) {},
-      requestKey: 'auth-request-otp-$phone',
+      requestKey: 'auth-request-otp-$email',
       cancelPrevious: true,
       retryPost: true,
     );
   }
 
   @override
-  Future<UserModel> login({required String phone, required String otp}) async {
-    final envelope = await _apiClient.post<Map<String, dynamic>>(
-      path: ApiEndpoints.login,
-      body: {'phone': phone, 'otp': otp},
-      parser: (json) => json as Map<String, dynamic>,
-      requestKey: 'auth-login-$phone',
+  Future<void> verifyOtp({required String email, required String otp}) async {
+    await _apiClient.post<void>(
+      path: ApiEndpoints.verifyOtp,
+      body: {'email': email, 'otp': otp},
+      parser: (_) {},
+      requestKey: 'auth-verify-otp-$email',
       cancelPrevious: true,
       retryPost: false,
     );
-
-    final data = envelope.data ?? <String, dynamic>{};
-    await _saveTokens(
-      accessToken: (data['accessToken'] ?? data['access_token']) as String,
-      refreshToken: (data['refreshToken'] ?? data['refresh_token']) as String,
-    );
-    return UserModel.fromJson(data['user'] as Map<String, dynamic>);
   }
 
   @override
-  Future<UserModel> loginWithPassword({required String email, required String password}) async {
+  Future<void> forgotPassword({required String email}) async {
+    await _apiClient.post<void>(
+      path: ApiEndpoints.forgotPassword,
+      body: {'email': email},
+      parser: (_) {},
+      requestKey: 'auth-forgot-password-$email',
+      cancelPrevious: true,
+      retryPost: false,
+    );
+  }
+
+  @override
+  Future<void> resetPassword({required String email, required String token, required String newPassword}) async {
+    await _apiClient.post<void>(
+      path: ApiEndpoints.resetPassword,
+      body: {'email': email, 'token': token, 'newPassword': newPassword},
+      parser: (_) {},
+      requestKey: 'auth-reset-password-$email',
+      cancelPrevious: true,
+      retryPost: false,
+    );
+  }
+
+  @override
+  Future<UserModel> login({required String email, required String password}) async {
     final envelope = await _apiClient.post<Map<String, dynamic>>(
       path: ApiEndpoints.login,
       body: {'email': email, 'password': password},

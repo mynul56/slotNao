@@ -56,7 +56,10 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthAuthenticated) context.go(AppRoutes.roleHub);
+        if (state is AuthRegistrationSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registration successful. Please verify your email.')));
+          context.push(AppRoutes.verifyOtp, extra: _emailCtrl.text.trim());
+        }
         if (state is AuthFailureState) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
         }

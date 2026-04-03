@@ -17,14 +17,26 @@ final class AuthLoading extends AuthState {
   const AuthLoading();
 }
 
-final class AuthOtpRequested extends AuthState {
-  final String phone;
+final class AuthRegistrationSuccess extends AuthState {
+  final String email;
   final String message;
 
-  const AuthOtpRequested({required this.phone, this.message = 'OTP sent successfully'});
+  const AuthRegistrationSuccess({required this.email, this.message = 'Please verify your email.'});
 
   @override
-  List<Object> get props => [phone, message];
+  List<Object> get props => [email, message];
+}
+
+final class AuthOtpVerificationSuccess extends AuthState {
+  const AuthOtpVerificationSuccess();
+}
+
+final class AuthForgotPasswordEmailSent extends AuthState {
+  const AuthForgotPasswordEmailSent();
+}
+
+final class AuthPasswordResetSuccess extends AuthState {
+  const AuthPasswordResetSuccess();
 }
 
 final class AuthAuthenticated extends AuthState {

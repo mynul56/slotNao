@@ -11,21 +11,32 @@ final class AuthCheckSessionRequested extends AuthEvent {
   const AuthCheckSessionRequested();
 }
 
-final class AuthRequestOtpRequested extends AuthEvent {
-  final String phone;
-  const AuthRequestOtpRequested({required this.phone});
+final class AuthVerifyOtpRequested extends AuthEvent {
+  final String email;
+  final String otp;
+  const AuthVerifyOtpRequested({required this.email, required this.otp});
 
   @override
-  List<Object> get props => [phone];
+  List<Object> get props => [email, otp];
 }
 
-final class AuthLoginRequested extends AuthEvent {
-  final String phone;
-  final String otp;
-  const AuthLoginRequested({required this.phone, required this.otp});
+final class AuthForgotPasswordRequested extends AuthEvent {
+  final String email;
+  const AuthForgotPasswordRequested({required this.email});
 
   @override
-  List<Object> get props => [phone, otp];
+  List<Object> get props => [email];
+}
+
+final class AuthResetPasswordRequested extends AuthEvent {
+  final String email;
+  final String token;
+  final String newPassword;
+
+  const AuthResetPasswordRequested({required this.email, required this.token, required this.newPassword});
+
+  @override
+  List<Object> get props => [email, token, newPassword];
 }
 
 final class AuthPasswordLoginRequested extends AuthEvent {

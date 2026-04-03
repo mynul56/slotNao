@@ -23,38 +23,20 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
-  final _otpCtrl = TextEditingController();
-  bool _usePasswordLogin = true;
-  bool _otpRequested = false;
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _nameCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
-    _phoneCtrl.dispose();
-    _otpCtrl.dispose();
     super.dispose();
   }
 
-  void _onPasswordLogin() {
+  void _onLogin() {
     if (!_formKey.currentState!.validate()) return;
     context.read<AuthBloc>().add(AuthPasswordLoginRequested(email: _emailCtrl.text.trim(), password: _passwordCtrl.text));
-  }
-
-  void _onRequestOtp() {
-    if (!_formKey.currentState!.validate()) return;
-    context.read<AuthBloc>().add(AuthRequestOtpRequested(phone: _phoneCtrl.text.trim()));
-  }
-
-  void _onVerifyOtp() {
-    if (!_formKey.currentState!.validate()) return;
-    context.read<AuthBloc>().add(AuthLoginRequested(phone: _phoneCtrl.text.trim(), otp: _otpCtrl.text.trim()));
   }
 
   void _onSocialLogin(String provider) {
@@ -68,7 +50,7 @@ class _LoginPageState extends State<LoginPage> {
         provider: provider,
         providerToken: providerToken,
         email: _emailCtrl.text.trim(),
-        name: _nameCtrl.text.trim().isEmpty ? null : _nameCtrl.text.trim(),
+        name: null,
       ),
     );
   }
@@ -82,10 +64,6 @@ class _LoginPageState extends State<LoginPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) context.go(AppRoutes.roleHub);
-        if (state is AuthOtpRequested) {
-          setState(() => _otpRequested = true);
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
-        }
         if (state is AuthFailureState) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
         }
@@ -143,127 +121,57 @@ class _LoginPageState extends State<LoginPage> {
                                       icon: Icons.email_rounded,
                                       keyboardType: TextInputType.emailAddress,
                                       validator: (val) {
-                                        if (_usePasswordLogin) {
-                                          if (val == null || val.trim().isEmpty) return 'Email is required';
-                                          if (!val.trim().isValidEmail) return 'Enter a valid email';
-                                        }
+                                        if (val == null || val.trim().isEmpty) return 'Email is required';
+                                        if (!val.trim().isValidEmail) return 'Enter a valid email';
                                         return null;
                                       },
                                     ),
                                     const SizedBox(height: 16),
-                                    if (_usePasswordLogin)
-                                      InputField(
-                                        controller: _passwordCtrl,
-                                        label: 'Password',
-                                        hint: '••••••••',
-                                        icon: Icons.lock_rounded,
-                                        obscureText: _obscurePassword,
-                                        suffix: IconButton(
-                                          icon: Icon(
-                                            _obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
-                                            color: AppTheme.neutralGrey,
-                                          ),
-                                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                    InputField(
+                                      controller: _passwordCtrl,
+                                      label: 'Password',
+                                      hint: '••••••••',
+                                      icon: Icons.lock_rounded,
+                                      obscureText: _obscurePassword,
+                                      suffix: IconButton(
+                                        icon: Icon(
+                                          _obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                                          color: AppTheme.neutralGrey,
                                         ),
-                                        validator: (val) {
-                                          if (!_usePasswordLogin) return null;
-                                          if (val == null || val.isEmpty) return 'Password is required';
-                                          if (!val.isValidPassword) return 'Minimum 8 characters';
-                                          return null;
-                                        },
+                                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                                       ),
-                                    if (!_usePasswordLogin)
-                                      Column(
-                                        children: [
-                                          InputField(
-                                            controller: _phoneCtrl,
-                                            label: 'Phone Number',
-                                            hint: '01XXXXXXXXX',
-                                            icon: Icons.phone_rounded,
-                                            keyboardType: TextInputType.phone,
-                                            readOnly: _otpRequested,
-                                            validator: (val) {
-                                              if (_usePasswordLogin) return null;
-                                              if (val == null || val.isEmpty) return 'Phone is required';
-                                              if (!val.isValidBangladeshPhone) {
-                                                return 'Enter a valid BD phone number';
-                                              }
-                                              return null;
-                                            },
+                                      validator: (val) {
+                                        if (val == null || val.isEmpty) return 'Password is required';
+                                        if (!val.isValidPassword) return 'Minimum 8 characters';
+                                        return null;
+                                      },
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: TextButton(
+                                        onPressed: () => context.push(AppRoutes.forgotPassword),
+                                        child: Text(
+                                          'Forgot Password?',
+                                          style: TextStyle(
+                                            color: AppTheme.primaryGreen,
+                                            fontSize: AppResponsive.scaleText(context, 14),
+                                            fontWeight: FontWeight.w600,
                                           ),
-                                          const SizedBox(height: 16),
-                                          if (_otpRequested)
-                                            InputField(
-                                              controller: _otpCtrl,
-                                              label: 'OTP Code',
-                                              hint: '6-digit OTP',
-                                              icon: Icons.sms_rounded,
-                                              keyboardType: TextInputType.number,
-                                              validator: (val) {
-                                                if (_usePasswordLogin || !_otpRequested) return null;
-                                                if (val == null || val.trim().isEmpty) return 'OTP is required';
-                                                final normalized = val.trim();
-                                                if (normalized.length != 6 || int.tryParse(normalized) == null) {
-                                                  return 'OTP must be 6 digits';
-                                                }
-                                                return null;
-                                              },
-                                            ),
-                                        ],
+                                        ),
                                       ),
-                                    const SizedBox(height: 24),
+                                    ),
+                                    const SizedBox(height: 16),
                                     BlocBuilder<AuthBloc, AuthState>(
                                       builder: (context, state) {
                                         return CustomButton(
-                                          onPressed: state is AuthLoading
-                                              ? null
-                                              : (_usePasswordLogin
-                                                    ? _onPasswordLogin
-                                                    : (_otpRequested ? _onVerifyOtp : _onRequestOtp)),
-                                          label: _usePasswordLogin
-                                              ? 'Login with Email'
-                                              : (_otpRequested ? 'Verify OTP & Login' : 'Send OTP'),
-                                          icon: _usePasswordLogin
-                                              ? Icons.login_rounded
-                                              : (_otpRequested ? Icons.verified_user_rounded : Icons.send_rounded),
+                                          onPressed: state is AuthLoading ? null : _onLogin,
+                                          label: 'Login',
+                                          icon: Icons.login_rounded,
                                           isLoading: state is AuthLoading,
                                         );
                                       },
                                     ),
-                                    const SizedBox(height: 10),
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            _usePasswordLogin = !_usePasswordLogin;
-                                            _otpRequested = false;
-                                            _otpCtrl.clear();
-                                          });
-                                        },
-                                        child: Text(
-                                          _usePasswordLogin ? 'Use OTP login instead' : 'Use email/password login',
-                                          style: TextStyle(
-                                            color: AppTheme.primaryGreen,
-                                            fontSize: AppResponsive.scaleText(context, 14),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    if (_otpRequested && !_usePasswordLogin)
-                                      TextButton(
-                                        onPressed: () {
-                                          _otpCtrl.clear();
-                                          _onRequestOtp();
-                                        },
-                                        child: Text(
-                                          'Resend OTP',
-                                          style: TextStyle(
-                                            color: AppTheme.primaryGreen,
-                                            fontSize: AppResponsive.scaleText(context, 14),
-                                          ),
-                                        ),
-                                      ),
                                   ],
                                 ),
                               ),
@@ -277,33 +185,22 @@ class _LoginPageState extends State<LoginPage> {
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(color: AppTheme.dark500),
                                 ),
-                                child: Column(
+                                child: Row(
                                   children: [
-                                    InputField(
-                                      controller: _nameCtrl,
-                                      label: 'Name (optional for social)',
-                                      hint: 'Your full name',
-                                      icon: Icons.person_rounded,
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: () => _onSocialLogin('google'),
+                                        icon: const Icon(Icons.g_mobiledata_rounded),
+                                        label: const Text('Google'),
+                                      ),
                                     ),
-                                    const SizedBox(height: 12),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: OutlinedButton.icon(
-                                            onPressed: () => _onSocialLogin('google'),
-                                            icon: const Icon(Icons.g_mobiledata_rounded),
-                                            label: const Text('Google'),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: OutlinedButton.icon(
-                                            onPressed: () => _onSocialLogin('facebook'),
-                                            icon: const Icon(Icons.facebook_rounded),
-                                            label: const Text('Facebook'),
-                                          ),
-                                        ),
-                                      ],
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: () => _onSocialLogin('facebook'),
+                                        icon: const Icon(Icons.facebook_rounded),
+                                        label: const Text('Facebook'),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -350,7 +247,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Login with email & password, social, or OTP',
+          'Login with email & password or social',
           style: TextStyle(fontSize: AppResponsive.scaleText(context, 15), color: AppTheme.neutralGrey),
         ),
       ],

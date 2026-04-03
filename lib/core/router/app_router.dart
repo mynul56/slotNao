@@ -5,9 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../features/admin/presentation/pages/admin_shell_page.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
+import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/onboarding_page.dart';
+import '../../features/auth/presentation/pages/otp_verification_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
+import '../../features/auth/presentation/pages/reset_password_page.dart';
 import '../../features/auth/presentation/pages/role_hub_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/booking/presentation/pages/booking_confirmation_page.dart';
@@ -42,8 +45,32 @@ final GoRouter appRouter = GoRouter(
   routes: [
     GoRoute(path: AppRoutes.splash, name: 'splash', builder: (_, __) => const SplashPage()),
     GoRoute(path: AppRoutes.onboarding, name: 'onboarding', builder: (_, __) => const OnboardingPage()),
-    GoRoute(path: AppRoutes.login, name: 'login', builder: (_, __) => const LoginPage()),
-    GoRoute(path: AppRoutes.register, name: 'register', builder: (_, __) => const RegisterPage()),
+    GoRoute(
+      path: AppRoutes.login,
+      builder: (context, state) => const LoginPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.forgotPassword,
+      builder: (context, state) => const ForgotPasswordPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.resetPassword,
+      builder: (context, state) {
+        final email = state.extra as String?;
+        return ResetPasswordPage(email: email);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.register,
+      builder: (context, state) => const RegisterPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.verifyOtp,
+      builder: (context, state) {
+        final email = state.extra as String? ?? '';
+        return OtpVerificationPage(email: email);
+      },
+    ),
     GoRoute(path: AppRoutes.roleHub, name: 'roleHub', builder: (_, __) => const RoleHubPage()),
     GoRoute(
       path: AppRoutes.home,

@@ -7,12 +7,12 @@ import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
 
 class LoginParams extends Equatable {
-  final String phone;
-  final String otp;
-  const LoginParams({required this.phone, required this.otp});
+  final String email;
+  final String password;
+  const LoginParams({required this.email, required this.password});
 
   @override
-  List<Object> get props => [phone, otp];
+  List<Object> get props => [email, password];
 }
 
 class LoginUseCase implements UseCase<UserEntity, LoginParams> {
@@ -21,6 +21,6 @@ class LoginUseCase implements UseCase<UserEntity, LoginParams> {
 
   @override
   Future<Either<Failure, UserEntity>> call(LoginParams params) {
-    return _repository.login(phone: params.phone, otp: params.otp);
+    return _repository.login(email: params.email, password: params.password);
   }
 }
