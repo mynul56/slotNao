@@ -32,7 +32,7 @@ class _ProfileView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Profile'),
         backgroundColor: AppTheme.dark800,
-        actions: [IconButton(icon: const Icon(CupertinoIcons.pencil), onPressed: () {})],
+        actions: [IconButton(icon: const Icon(CupertinoIcons.pencil), onPressed: () => _onEditProfile(context))],
       ),
       body: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
@@ -54,7 +54,17 @@ class _ProfileView extends StatelessWidget {
           }
           if (state is ProfileError) {
             return Center(
-              child: Text(state.message, style: const TextStyle(color: AppTheme.errorRed)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(state.message, style: const TextStyle(color: AppTheme.errorRed)),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () => context.read<ProfileBloc>().add(const ProfileLoadRequested()),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
             );
           }
           return const SizedBox.shrink();
@@ -161,9 +171,9 @@ class _ProfileView extends StatelessWidget {
   Widget _buildMenuSection(BuildContext context) {
     final items = [
       _MenuItem(icon: CupertinoIcons.calendar, title: 'My Bookings', onTap: () => context.go(AppRoutes.schedule)),
-      _MenuItem(icon: CupertinoIcons.bell_fill, title: 'Notifications', onTap: () {}),
-      _MenuItem(icon: CupertinoIcons.question_circle, title: 'Help & Support', onTap: () {}),
-      _MenuItem(icon: CupertinoIcons.shield_fill, title: 'Privacy Policy', onTap: () {}),
+      _MenuItem(icon: CupertinoIcons.bell_fill, title: 'Notifications', onTap: () => _showNotificationsSheet(context)),
+      _MenuItem(icon: CupertinoIcons.question_circle, title: 'Help & Support', onTap: () => _showHelpSheet(context)),
+      _MenuItem(icon: CupertinoIcons.shield_fill, title: 'Privacy Policy', onTap: () => _showPrivacySheet(context)),
       _MenuItem(
         icon: CupertinoIcons.square_arrow_right,
         title: 'Logout',
@@ -191,6 +201,119 @@ class _ProfileView extends StatelessWidget {
           ),
           trailing: item.isDestructive ? null : const Icon(CupertinoIcons.chevron_right, color: AppTheme.dark500),
           onTap: item.onTap,
+        );
+      },
+    );
+  }
+
+  void _onEditProfile(BuildContext context) {
+    final state = context.read<ProfileBloc>().state;
+    if (state is! ProfileLoaded) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile is still loading, please wait.')));
+      return;
+    }
+
+    final nameController = TextEditingController(text: state.profile.name);
+    final emailController = TextEditingController(text: state.profile.email);
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: AppTheme.dark800,
+          title: const Text('Edit Profile', style: TextStyle(color: AppTheme.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                style: const TextStyle(color: AppTheme.white),
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: emailController,
+                style: const TextStyle(color: AppTheme.white),
+                decoration: const InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                final name = nameController.text.trim();
+                final email = emailController.text.trim();
+                if (name.isEmpty || email.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name and email are required.')));
+                  return;
+                }
+                context.read<ProfileBloc>().add(ProfileUpdateRequested(name: name, email: email));
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showNotificationsSheet(BuildContext context) {
+    _showInfoSheet(
+      context: context,
+      title: 'Notifications',
+      body: 'No new alerts right now. Booking updates and payment alerts will appear here in realtime.',
+      icon: CupertinoIcons.bell_fill,
+    );
+  }
+
+  void _showHelpSheet(BuildContext context) {
+    _showInfoSheet(
+      context: context,
+      title: 'Help & Support',
+      body: 'Need help? Contact support@slotnao.app or call +880-1700-000000 from 9 AM to 11 PM.',
+      icon: CupertinoIcons.question_circle,
+    );
+  }
+
+  void _showPrivacySheet(BuildContext context) {
+    _showInfoSheet(
+      context: context,
+      title: 'Privacy Policy',
+      body:
+          'We only use your profile and booking data to provide core app services. No sensitive data is sold to third parties.',
+      icon: CupertinoIcons.shield_fill,
+    );
+  }
+
+  void _showInfoSheet({required BuildContext context, required String title, required String body, required IconData icon}) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppTheme.dark800,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(18))),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: AppTheme.primaryGreen),
+                  const SizedBox(width: 10),
+                  Text(
+                    title,
+                    style: const TextStyle(color: AppTheme.white, fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(body, style: const TextStyle(color: AppTheme.neutralGrey, height: 1.5)),
+            ],
+          ),
         );
       },
     );

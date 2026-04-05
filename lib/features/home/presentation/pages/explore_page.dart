@@ -1,11 +1,13 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/ui/responsive/app_responsive.dart';
 import '../../../../injection_container.dart' as di;
 import '../../../turf/domain/entities/turf_entity.dart';
 import '../../../turf/presentation/bloc/turf_bloc.dart';
@@ -29,94 +31,114 @@ class _ExploreView extends StatefulWidget {
 }
 
 class _ExploreViewState extends State<_ExploreView> {
-  static const List<String> _filters = <String>['All', 'Football', 'Cricket', 'Basketball', 'Badminton'];
-  String _selectedFilter = _filters.first;
+  static const LatLng _defaultCenter = LatLng(23.8103, 90.4125);
+  final MapController _mapController = MapController();
+
+  TurfType? _selectedType;
+  LatLng _cameraCenter = _defaultCenter;
+  LatLng? _userLocation;
+  String? _selectedTurfId;
+  bool _isMapReady = false;
+  LatLng? _pendingCenter;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final horizontal = AppResponsive.horizontalPadding(context);
     return Scaffold(
       backgroundColor: AppTheme.dark900,
-      appBar: AppBar(title: const Text('Explore'), backgroundColor: AppTheme.dark800),
       body: BlocBuilder<TurfBloc, TurfState>(
         builder: (context, state) {
-          if (state is TurfLoading) {
-            return const Center(child: CircularProgressIndicator(color: AppTheme.primaryGreen));
-          }
-
-          if (state is TurfError) {
-            return _ErrorState(
-              message: state.message,
-              onRetry: () => context.read<TurfBloc>().add(const TurfLoadRequested()),
-            );
-          }
-
           final turfs = _resolveTurfs(state);
-          if (turfs.isEmpty) {
-            return const _EmptyState();
-          }
+          final visibleTurfs = _applyFilter(turfs);
 
-          final filteredTurfs = _applyFilter(turfs, _selectedFilter);
-          final topRatedTurfs = filteredTurfs.toList()..sort((a, b) => b.rating.compareTo(a.rating));
-          return RefreshIndicator(
-            color: AppTheme.primaryGreen,
-            onRefresh: () async => context.read<TurfBloc>().add(const TurfLoadRequested()),
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 120),
-              children: [
-                _HeroCard(turfCount: filteredTurfs.length),
-                const SizedBox(height: 18),
-                SizedBox(
-                  height: 42,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _filters.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
-                    itemBuilder: (_, index) {
-                      final value = _filters[index];
-                      final selected = value == _selectedFilter;
-                      return ChoiceChip(
-                        label: Text(value),
-                        selected: selected,
-                        onSelected: (_) => setState(() => _selectedFilter = value),
-                        selectedColor: AppTheme.primaryGreen.withValues(alpha: 0.2),
-                        side: BorderSide(color: selected ? AppTheme.primaryGreen : AppTheme.dark500),
-                        labelStyle: TextStyle(
-                          color: selected ? AppTheme.primaryGreen : AppTheme.lightGrey,
-                          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                        ),
-                      );
-                    },
-                  ),
+          return Stack(
+            children: [
+              _buildMapLayer(state, visibleTurfs),
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+                  child: Column(children: [_buildTopSearchBar(), const SizedBox(height: 10), _buildFilterChips()]),
                 ),
-                const SizedBox(height: 22),
-                const Text(
-                  'Popular Near You',
-                  style: TextStyle(color: AppTheme.white, fontWeight: FontWeight.w700, fontSize: 18),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 190,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: filteredTurfs.take(6).length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (_, i) => _CompactExploreCard(turf: filteredTurfs[i]),
-                  ),
-                ),
-                const SizedBox(height: 22),
-                const Text(
-                  'Top Rated',
-                  style: TextStyle(color: AppTheme.white, fontWeight: FontWeight.w700, fontSize: 18),
-                ),
-                const SizedBox(height: 8),
-                ...topRatedTurfs.take(5).map((turf) => _TopRatedTile(turf: turf)),
-              ],
-            ),
+              ),
+              _buildFloatingActions(state),
+              _buildBottomSheet(state, visibleTurfs),
+            ],
           );
         },
       ),
+    );
+  }
+
+  Widget _buildMapLayer(TurfState state, List<TurfEntity> visibleTurfs) {
+    final markers = <Marker>[
+      for (final turf in visibleTurfs.where(_hasValidCoordinates))
+        Marker(
+          point: LatLng(turf.latitude, turf.longitude),
+          width: 130,
+          height: 62,
+          child: GestureDetector(
+            onTap: () {
+              setState(() => _selectedTurfId = turf.id);
+              _mapController.move(LatLng(turf.latitude, turf.longitude), 15.5);
+            },
+            child: _TurfMarkerChip(turf: turf, isSelected: turf.id == _selectedTurfId),
+          ),
+        ),
+      if (_userLocation != null)
+        Marker(
+          point: _userLocation!,
+          width: 24,
+          height: 24,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.blueAccent,
+              border: Border.all(color: AppTheme.white, width: 2),
+            ),
+          ),
+        ),
+    ];
+
+    return FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(
+        initialCenter: _cameraCenter,
+        initialZoom: 13,
+        minZoom: 4,
+        maxZoom: 18,
+        onMapReady: () {
+          _isMapReady = true;
+          final pending = _pendingCenter;
+          if (pending != null) {
+            _mapController.move(pending, 15.5);
+            _pendingCenter = null;
+          }
+        },
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+          subdomains: const ['a', 'b', 'c', 'd'],
+          userAgentPackageName: 'com.slotnao.turf_booking_app',
+        ),
+        MarkerLayer(markers: markers),
+        RichAttributionWidget(
+          showFlutterMapAttribution: false,
+          attributions: [
+            TextSourceAttribution('OpenStreetMap contributors', onTap: () {}),
+            const TextSourceAttribution('CARTO'),
+          ],
+        ),
+        if (state is TurfLoading)
+          Container(
+            color: Colors.black.withValues(alpha: 0.22),
+            child: const Center(child: CircularProgressIndicator(color: AppTheme.primaryGreen)),
+          ),
+      ],
     );
   }
 
@@ -128,154 +150,283 @@ class _ExploreViewState extends State<_ExploreView> {
     };
   }
 
-  List<TurfEntity> _applyFilter(List<TurfEntity> turfs, String selectedFilter) {
-    if (selectedFilter == 'All') return turfs;
-    final lookup = selectedFilter.toLowerCase();
-    return turfs.where((item) => item.type.name.toLowerCase() == lookup).toList();
+  List<TurfEntity> _applyFilter(List<TurfEntity> turfs) {
+    if (_selectedType == null) return turfs;
+    return turfs.where((item) => item.type == _selectedType).toList();
   }
-}
 
-class _HeroCard extends StatelessWidget {
-  final int turfCount;
+  bool _hasValidCoordinates(TurfEntity turf) => turf.latitude != 0 && turf.longitude != 0;
 
-  const _HeroCard({required this.turfCount});
+  Future<void> _tryMoveToCurrentLocation() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
 
-  @override
-  Widget build(BuildContext context) {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final current = LatLng(position.latitude, position.longitude);
+      if (!mounted) return;
+
+      setState(() {
+        _userLocation = current;
+        _cameraCenter = current;
+      });
+
+      if (_isMapReady) {
+        _mapController.move(current, 15.5);
+      } else {
+        _pendingCenter = current;
+      }
+    } on MissingPluginException {
+      // Location plugin can be unavailable right after adding dependencies until full rebuild.
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Location service is initializing. Try again after app restart.')));
+    } on PlatformException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Unable to access device location right now.')));
+    } catch (_) {
+      // Swallow unexpected location errors to keep Explore map functional.
+    }
+  }
+
+  Widget _buildTopSearchBar() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(colors: <Color>[Color(0xFF174B1D), Color(0xFF0D2711)]),
-        border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
+        color: AppTheme.dark800.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.dark500),
       ),
-      child: Row(
+      child: const Row(
         children: [
-          Container(
-            height: 54,
-            width: 54,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              color: AppTheme.primaryGreen.withValues(alpha: 0.16),
-            ),
-            child: const Icon(CupertinoIcons.location_solid, color: AppTheme.primaryGreen),
-          ),
-          const SizedBox(width: 12),
+          Icon(CupertinoIcons.search, color: AppTheme.neutralGrey),
+          SizedBox(width: 8),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Live Nearby Availability',
-                  style: TextStyle(color: AppTheme.white, fontWeight: FontWeight.w700, fontSize: 16),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$turfCount active turfs open for booking right now.',
-                  style: const TextStyle(color: AppTheme.lightGrey, fontSize: 13),
-                ),
-              ],
+            child: Text(
+              'Where do you want to play?',
+              style: TextStyle(color: AppTheme.lightGrey, fontSize: 15, fontWeight: FontWeight.w500),
             ),
           ),
+          Icon(CupertinoIcons.slider_horizontal_3, color: AppTheme.lightGrey),
         ],
       ),
     );
   }
-}
 
-class _CompactExploreCard extends StatelessWidget {
-  final TurfEntity turf;
-
-  const _CompactExploreCard({required this.turf});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildFilterChips() {
+    final types = <(String label, TurfType? type)>[
+      ('All', null),
+      ('Football', TurfType.football),
+      ('Cricket', TurfType.cricket),
+      ('Basketball', TurfType.basketball),
+      ('Badminton', TurfType.badminton),
+    ];
     return SizedBox(
-      width: AppResponsive.isTablet(context) ? 280 : 250,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () => context.push('/home/turf/${turf.id}'),
-        child: Ink(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (_, i) {
+          final item = types[i];
+          final selected = item.$2 == _selectedType;
+          return ChoiceChip(
+            label: Text(item.$1),
+            selected: selected,
+            onSelected: (_) => setState(() => _selectedType = item.$2),
+            selectedColor: AppTheme.primaryGreen,
+            backgroundColor: AppTheme.dark800.withValues(alpha: 0.92),
+            side: BorderSide(color: selected ? AppTheme.primaryGreen : AppTheme.dark500),
+            labelStyle: TextStyle(color: selected ? AppTheme.dark900 : AppTheme.lightGrey, fontWeight: FontWeight.w600),
+          );
+        },
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemCount: types.length,
+      ),
+    );
+  }
+
+  Widget _buildFloatingActions(TurfState state) {
+    return Positioned(
+      right: 14,
+      bottom: 220,
+      child: Column(
+        children: [
+          _MapActionButton(icon: CupertinoIcons.location_solid, onTap: _tryMoveToCurrentLocation),
+          const SizedBox(height: 8),
+          _MapActionButton(
+            icon: CupertinoIcons.refresh,
+            onTap: () => context.read<TurfBloc>().add(const TurfLoadRequested()),
+          ),
+          if (state is TurfError) ...[const SizedBox(height: 8), const _ErrorPill()],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomSheet(TurfState state, List<TurfEntity> turfs) {
+    return DraggableScrollableSheet(
+      minChildSize: 0.20,
+      initialChildSize: 0.30,
+      maxChildSize: 0.70,
+      builder: (context, controller) {
+        return Container(
           decoration: BoxDecoration(
-            color: AppTheme.dark700,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.dark500),
+            color: AppTheme.dark900,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+            border: Border.all(color: AppTheme.dark600),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: turf.imageUrls.isEmpty
-                      ? Container(
-                          color: AppTheme.dark600,
-                          child: const Center(
-                            child: Icon(CupertinoIcons.sportscourt_fill, color: AppTheme.neutralGrey, size: 34),
-                          ),
-                        )
-                      : CachedNetworkImage(imageUrl: turf.imageUrls.first, fit: BoxFit.cover, width: double.infinity),
-                ),
+              const SizedBox(height: 8),
+              Container(
+                height: 4,
+                width: 46,
+                decoration: BoxDecoration(color: AppTheme.dark500, borderRadius: BorderRadius.circular(10)),
               ),
+              const SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
                   children: [
                     Text(
-                      turf.name,
-                      style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.w700),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      turfs.isEmpty ? 'No Nearby Turfs' : '${turfs.length} Nearby Turfs',
+                      style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.w700, fontSize: 18),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(CupertinoIcons.star_fill, color: AppTheme.accentAmber, size: 14),
-                        const SizedBox(width: 4),
-                        Text(
-                          turf.rating.toStringAsFixed(1),
-                          style: const TextStyle(color: AppTheme.accentAmber, fontSize: 12),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '৳${turf.pricePerHour.toInt()}/hr',
-                          style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.w700),
-                        ),
-                      ],
-                    ),
+                    const Spacer(),
+                    if (state is TurfLoading)
+                      const SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryGreen),
+                      ),
                   ],
                 ),
               ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: turfs.isEmpty
+                    ? const Center(
+                        child: Text('Try a different sport filter.', style: TextStyle(color: AppTheme.neutralGrey)),
+                      )
+                    : ListView.separated(
+                        controller: controller,
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 120),
+                        itemCount: turfs.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        itemBuilder: (_, i) {
+                          final turf = turfs[i];
+                          return _TurfListTile(
+                            turf: turf,
+                            selected: turf.id == _selectedTurfId,
+                            onTap: () {
+                              setState(() => _selectedTurfId = turf.id);
+                              if (_hasValidCoordinates(turf)) {
+                                _mapController.move(LatLng(turf.latitude, turf.longitude), 15.7);
+                              }
+                              context.push('/home/turf/${turf.id}');
+                            },
+                          );
+                        },
+                      ),
+              ),
             ],
           ),
+        );
+      },
+    );
+  }
+}
+
+class _MapActionButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _MapActionButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppTheme.dark800.withValues(alpha: 0.95),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: AppTheme.dark500),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: SizedBox(height: 44, width: 44, child: Icon(icon, color: AppTheme.white, size: 20)),
+      ),
+    );
+  }
+}
+
+class _TurfMarkerChip extends StatelessWidget {
+  final TurfEntity turf;
+  final bool isSelected;
+
+  const _TurfMarkerChip({required this.turf, required this.isSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primaryGreen : AppTheme.dark800,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isSelected ? AppTheme.primaryGreenLight : AppTheme.dark500),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.36), blurRadius: 10)],
+        ),
+        child: Text(
+          '৳${turf.pricePerHour.toInt()}',
+          style: TextStyle(color: isSelected ? AppTheme.dark900 : AppTheme.white, fontWeight: FontWeight.w700, fontSize: 12),
         ),
       ),
     );
   }
 }
 
-class _TopRatedTile extends StatelessWidget {
+class _TurfListTile extends StatelessWidget {
   final TurfEntity turf;
+  final bool selected;
+  final VoidCallback onTap;
 
-  const _TopRatedTile({required this.turf});
+  const _TurfListTile({required this.turf, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
+      onTap: onTap,
       borderRadius: BorderRadius.circular(14),
-      onTap: () => context.push('/home/turf/${turf.id}'),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
+      child: Ink(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          color: selected ? AppTheme.primaryGreen.withValues(alpha: 0.14) : AppTheme.dark800,
           borderRadius: BorderRadius.circular(14),
-          color: AppTheme.dark700,
-          border: Border.all(color: AppTheme.dark500),
+          border: Border.all(color: selected ? AppTheme.primaryGreen : AppTheme.dark500),
         ),
         child: Row(
           children: [
-            const Icon(CupertinoIcons.sportscourt_fill, color: AppTheme.primaryGreen, size: 20),
+            Container(
+              height: 42,
+              width: 42,
+              decoration: BoxDecoration(color: AppTheme.dark700, borderRadius: BorderRadius.circular(10)),
+              child: const Icon(CupertinoIcons.sportscourt_fill, color: AppTheme.primaryGreen),
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -283,15 +434,16 @@ class _TopRatedTile extends StatelessWidget {
                 children: [
                   Text(
                     turf.name,
-                    style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.w700),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.w700),
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     turf.address,
-                    style: const TextStyle(color: AppTheme.neutralGrey, fontSize: 12),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: AppTheme.neutralGrey, fontSize: 12),
                   ),
                 ],
               ),
@@ -300,19 +452,18 @@ class _TopRatedTile extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                Text(
+                  '৳${turf.pricePerHour.toInt()}/hr',
+                  style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.w700, fontSize: 12),
+                ),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(CupertinoIcons.star_fill, color: AppTheme.accentAmber, size: 13),
+                    const Icon(CupertinoIcons.star_fill, size: 12, color: AppTheme.accentAmber),
                     const SizedBox(width: 3),
-                    Text(
-                      turf.rating.toStringAsFixed(1),
-                      style: const TextStyle(color: AppTheme.accentAmber, fontWeight: FontWeight.w700),
-                    ),
+                    Text(turf.rating.toStringAsFixed(1), style: const TextStyle(color: AppTheme.accentAmber, fontSize: 12)),
                   ],
                 ),
-                const SizedBox(height: 2),
-                Text('৳${turf.pricePerHour.toInt()}/hr', style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 12)),
               ],
             ),
           ],
@@ -322,49 +473,17 @@ class _TopRatedTile extends StatelessWidget {
   }
 }
 
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
+class _ErrorPill extends StatelessWidget {
+  const _ErrorPill();
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(CupertinoIcons.exclamationmark_triangle_fill, color: AppTheme.errorRed, size: 46),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppTheme.neutralGrey),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(CupertinoIcons.map_pin_ellipse, color: AppTheme.neutralGrey, size: 50),
-          SizedBox(height: 10),
-          Text('No turfs available for explore.', style: TextStyle(color: AppTheme.neutralGrey)),
-        ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: AppTheme.errorRed.withValues(alpha: 0.9), borderRadius: BorderRadius.circular(20)),
+      child: const Text(
+        'Offline',
+        style: TextStyle(color: AppTheme.white, fontSize: 11, fontWeight: FontWeight.w700),
       ),
     );
   }

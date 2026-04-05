@@ -32,6 +32,8 @@ class _TurfListView extends StatefulWidget {
 
 class _TurfListViewState extends State<_TurfListView> {
   final _scrollController = ScrollController();
+  final _categories = const ['All', 'Football', 'Cricket', 'Basketball', 'Badminton'];
+  int _selectedCategoryIndex = 0;
   int _currentPage = 1;
 
   @override
@@ -100,7 +102,11 @@ class _TurfListViewState extends State<_TurfListView> {
       actions: [
         IconButton(
           icon: const Icon(CupertinoIcons.bell_fill, color: AppTheme.white),
-          onPressed: () {},
+          onPressed: () {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('You are all caught up. No new notifications.')));
+          },
         ),
         const SizedBox(width: 4),
       ],
@@ -118,7 +124,6 @@ class _TurfListViewState extends State<_TurfListView> {
   }
 
   Widget _buildCategoryChips() {
-    const categories = ['All', 'Football', 'Cricket', 'Basketball', 'Badminton'];
     final horizontal = AppResponsive.horizontalPadding(context);
     return SliverToBoxAdapter(
       child: SizedBox(
@@ -126,17 +131,17 @@ class _TurfListViewState extends State<_TurfListView> {
         child: ListView.separated(
           padding: EdgeInsets.symmetric(horizontal: horizontal, vertical: 8),
           scrollDirection: Axis.horizontal,
-          itemCount: categories.length,
+          itemCount: _categories.length,
           separatorBuilder: (_, __) => const SizedBox(width: 8),
           itemBuilder: (_, i) => FilterChip(
-            label: Text(categories[i]),
-            selected: i == 0,
-            onSelected: (_) {},
+            label: Text(_categories[i]),
+            selected: i == _selectedCategoryIndex,
+            onSelected: (_) => setState(() => _selectedCategoryIndex = i),
             selectedColor: AppTheme.primaryGreen.withValues(alpha: 0.2),
             checkmarkColor: AppTheme.primaryGreen,
             labelStyle: TextStyle(
-              color: i == 0 ? AppTheme.primaryGreen : AppTheme.neutralGrey,
-              fontWeight: i == 0 ? FontWeight.w600 : FontWeight.w400,
+              color: i == _selectedCategoryIndex ? AppTheme.primaryGreen : AppTheme.neutralGrey,
+              fontWeight: i == _selectedCategoryIndex ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
         ),
@@ -182,7 +187,12 @@ class _TurfListViewState extends State<_TurfListView> {
           _ => <TurfEntity>[],
         };
 
-        if (turfs.isEmpty) {
+        final selectedCategory = _categories[_selectedCategoryIndex];
+        final visibleTurfs = selectedCategory == 'All'
+            ? turfs
+            : turfs.where((t) => t.type.name.toLowerCase() == selectedCategory.toLowerCase()).toList();
+
+        if (visibleTurfs.isEmpty) {
           return const SliverFillRemaining(
             child: Center(
               child: Column(
@@ -206,7 +216,7 @@ class _TurfListViewState extends State<_TurfListView> {
               crossAxisSpacing: 12,
               childAspectRatio: columns >= 3 ? 0.96 : 0.92,
             ),
-            delegate: SliverChildBuilderDelegate((_, i) => TurfCard(turf: turfs[i]), childCount: turfs.length),
+            delegate: SliverChildBuilderDelegate((_, i) => TurfCard(turf: visibleTurfs[i]), childCount: visibleTurfs.length),
           ),
         );
       },
