@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/demo/demo_store.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/booking_entity.dart';
@@ -8,8 +9,6 @@ import '../../domain/repositories/booking_repository.dart';
 import '../datasources/booking_remote_datasource.dart';
 
 class BookingRepositoryImpl implements BookingRepository {
-  static final List<BookingEntity> _demoBookings = <BookingEntity>[];
-
   final BookingRemoteDatasource _remoteDatasource;
   const BookingRepositoryImpl({required BookingRemoteDatasource remoteDatasource}) : _remoteDatasource = remoteDatasource;
 
@@ -20,6 +19,21 @@ class BookingRepositoryImpl implements BookingRepository {
     required DateTime slotStart,
     required DateTime slotEnd,
   }) async {
+    if (AppConstants.frontendOnlyMode) {
+      try {
+        final booking = await _remoteDatasource.createBooking(
+          turfId: turfId,
+          slotId: slotId,
+          slotStart: slotStart,
+          slotEnd: slotEnd,
+        );
+        return Right(booking);
+      } on Exception {
+        final booking = DemoStore.createBooking(turfId: turfId, slotStart: slotStart, slotEnd: slotEnd);
+        return Right(booking);
+      }
+    }
+
     try {
       final booking = await _remoteDatasource.createBooking(
         turfId: turfId,
@@ -29,21 +43,6 @@ class BookingRepositoryImpl implements BookingRepository {
       );
       return Right(booking);
     } on NetworkException catch (e) {
-      if (AppConstants.frontendOnlyMode) {
-        final booking = BookingEntity(
-          id: 'demo-booking-${DateTime.now().millisecondsSinceEpoch}',
-          turfId: turfId,
-          turfName: 'Demo Turf',
-          userId: 'demo-user-1',
-          slotStart: slotStart,
-          slotEnd: slotEnd,
-          totalAmount: 1800,
-          status: BookingStatus.pending,
-          createdAt: DateTime.now(),
-        );
-        _demoBookings.insert(0, booking);
-        return Right(booking);
-      }
       return Left(NetworkFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
@@ -54,13 +53,19 @@ class BookingRepositoryImpl implements BookingRepository {
 
   @override
   Future<Either<Failure, List<BookingEntity>>> getBookings({BookingStatus? status, int page = 1}) async {
+    if (AppConstants.frontendOnlyMode) {
+      try {
+        final bookings = await _remoteDatasource.getBookings(status: status?.name, page: page);
+        return Right(bookings);
+      } on Exception {
+        return Right(DemoStore.getBookings(status: status));
+      }
+    }
+
     try {
       final bookings = await _remoteDatasource.getBookings(status: status?.name, page: page);
       return Right(bookings);
     } on NetworkException catch (e) {
-      if (AppConstants.frontendOnlyMode) {
-        return Right(_demoBookings);
-      }
       return Left(NetworkFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
@@ -71,27 +76,23 @@ class BookingRepositoryImpl implements BookingRepository {
 
   @override
   Future<Either<Failure, BookingEntity>> getBookingDetail(String bookingId) async {
+    if (AppConstants.frontendOnlyMode) {
+      try {
+        final booking = await _remoteDatasource.getBookingDetail(bookingId);
+        return Right(booking);
+      } on Exception {
+        final booking = DemoStore.getBookingDetail(bookingId);
+        if (booking != null) {
+          return Right(booking);
+        }
+        return const Left(NotFoundFailure(message: 'Demo booking not found'));
+      }
+    }
+
     try {
       final booking = await _remoteDatasource.getBookingDetail(bookingId);
       return Right(booking);
     } on NetworkException catch (e) {
-      if (AppConstants.frontendOnlyMode) {
-        final booking = _demoBookings.firstWhere(
-          (b) => b.id == bookingId,
-          orElse: () => BookingEntity(
-            id: bookingId,
-            turfId: 'turf-1',
-            turfName: 'Demo Turf',
-            userId: 'demo-user-1',
-            slotStart: DateTime.now().add(const Duration(hours: 2)),
-            slotEnd: DateTime.now().add(const Duration(hours: 3)),
-            totalAmount: 1800,
-            status: BookingStatus.confirmed,
-            createdAt: DateTime.now(),
-          ),
-        );
-        return Right(booking);
-      }
       return Left(NetworkFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
@@ -102,29 +103,20 @@ class BookingRepositoryImpl implements BookingRepository {
 
   @override
   Future<Either<Failure, void>> cancelBooking(String bookingId) async {
+    if (AppConstants.frontendOnlyMode) {
+      try {
+        await _remoteDatasource.cancelBooking(bookingId);
+        return const Right(null);
+      } on Exception {
+        DemoStore.cancelBooking(bookingId);
+        return const Right(null);
+      }
+    }
+
     try {
       await _remoteDatasource.cancelBooking(bookingId);
       return const Right(null);
     } on NetworkException catch (e) {
-      if (AppConstants.frontendOnlyMode) {
-        final index = _demoBookings.indexWhere((b) => b.id == bookingId);
-        if (index >= 0) {
-          final current = _demoBookings[index];
-          _demoBookings[index] = BookingEntity(
-            id: current.id,
-            turfId: current.turfId,
-            turfName: current.turfName,
-            userId: current.userId,
-            slotStart: current.slotStart,
-            slotEnd: current.slotEnd,
-            totalAmount: current.totalAmount,
-            status: BookingStatus.cancelled,
-            paymentId: current.paymentId,
-            createdAt: current.createdAt,
-          );
-        }
-        return const Right(null);
-      }
       return Left(NetworkFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));

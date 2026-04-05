@@ -86,7 +86,6 @@ final GoRouter appRouter = GoRouter(
       name: 'booking',
       builder: (_, state) => BookingPage(turfId: state.pathParameters['id']!),
     ),
-    GoRoute(path: AppRoutes.myBookings, name: 'myBookings', builder: (_, __) => const MyBookingsPage()),
     GoRoute(
       path: AppRoutes.bookingConfirmation,
       name: 'bookingConfirmation',

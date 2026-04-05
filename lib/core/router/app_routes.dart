@@ -16,7 +16,7 @@ class AppRoutes {
   static const String wallet = '/home/wallet';
   static const String turfDetail = '/home/turf/:id';
   static const String booking = '/home/turf/:id/book';
-  static const String myBookings = '/home/bookings';
+  static const String myBookings = '/home/schedule';
   static const String bookingConfirmation = '/home/bookings/:bookingId/confirm';
   static const String payment = '/home/payment';
   static const String profile = '/home/profile';

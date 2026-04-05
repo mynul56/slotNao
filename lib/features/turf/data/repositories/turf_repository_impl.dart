@@ -22,13 +22,14 @@ class TurfRepositoryImpl implements TurfRepository {
 
   @override
   Future<Either<Failure, List<TurfEntity>>> getTurfs({int page = 1, int pageSize = 20}) async {
+    if (AppConstants.frontendOnlyMode) {
+      return Right(_demoTurfs());
+    }
+
     try {
       final turfs = await _remoteDatasource.getTurfs(page: page, pageSize: pageSize);
       return Right(turfs);
     } on NetworkException catch (e) {
-      if (AppConstants.frontendOnlyMode) {
-        return Right(_demoTurfs());
-      }
       return Left(NetworkFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
@@ -39,13 +40,14 @@ class TurfRepositoryImpl implements TurfRepository {
 
   @override
   Future<Either<Failure, TurfEntity>> getTurfDetail(String turfId) async {
+    if (AppConstants.frontendOnlyMode) {
+      return Right(_demoTurfs().firstWhere((t) => t.id == turfId, orElse: () => _demoTurfs().first));
+    }
+
     try {
       final turf = await _remoteDatasource.getTurfDetail(turfId);
       return Right(turf);
     } on NetworkException catch (e) {
-      if (AppConstants.frontendOnlyMode) {
-        return Right(_demoTurfs().firstWhere((t) => t.id == turfId, orElse: () => _demoTurfs().first));
-      }
       return Left(NetworkFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
@@ -63,20 +65,20 @@ class TurfRepositoryImpl implements TurfRepository {
     double? lng,
     double? radiusKm,
   }) async {
+    if (AppConstants.frontendOnlyMode) {
+      final items = _demoTurfs()
+          .where(
+            (t) =>
+                t.name.toLowerCase().contains(query.toLowerCase()) || t.address.toLowerCase().contains(query.toLowerCase()),
+          )
+          .toList(growable: false);
+      return Right(items);
+    }
+
     try {
       final turfs = await _remoteDatasource.searchTurfs(query: query);
       return Right(turfs);
     } on NetworkException catch (e) {
-      if (AppConstants.frontendOnlyMode) {
-        final items = _demoTurfs()
-            .where(
-              (t) =>
-                  t.name.toLowerCase().contains(query.toLowerCase()) ||
-                  t.address.toLowerCase().contains(query.toLowerCase()),
-            )
-            .toList(growable: false);
-        return Right(items);
-      }
       return Left(NetworkFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
@@ -87,13 +89,14 @@ class TurfRepositoryImpl implements TurfRepository {
 
   @override
   Future<Either<Failure, List<SlotEntity>>> getTurfSlots({required String turfId, required DateTime date}) async {
+    if (AppConstants.frontendOnlyMode) {
+      return Right(_demoSlots(turfId, date));
+    }
+
     try {
       final slots = await _remoteDatasource.getTurfSlots(turfId: turfId, date: date);
       return Right(slots);
     } on NetworkException catch (e) {
-      if (AppConstants.frontendOnlyMode) {
-        return Right(_demoSlots(turfId, date));
-      }
       return Left(NetworkFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));

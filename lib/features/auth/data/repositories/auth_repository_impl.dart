@@ -40,9 +40,15 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, UserEntity>> login({required String email, required String password}) async {
     if (AppConstants.frontendOnlyMode) {
-      final user = _demoUser(email: email);
-      _frontendSessionUser = user;
-      return Right(user);
+      try {
+        final user = await _remoteDatasource.login(email: email, password: password);
+        _frontendSessionUser = user;
+        return Right(user);
+      } on Exception {
+        final user = _demoUser(email: email);
+        _frontendSessionUser = user;
+        return Right(user);
+      }
     }
     try {
       final user = await _remoteDatasource.login(email: email, password: password);
@@ -66,9 +72,20 @@ class AuthRepositoryImpl implements AuthRepository {
     String? name,
   }) async {
     if (AppConstants.frontendOnlyMode) {
-      final user = _demoUser(email: email, name: name ?? 'Demo User');
-      _frontendSessionUser = user;
-      return Right(user);
+      try {
+        final user = await _remoteDatasource.socialLogin(
+          provider: provider,
+          providerToken: providerToken,
+          email: email,
+          name: name,
+        );
+        _frontendSessionUser = user;
+        return Right(user);
+      } on Exception {
+        final user = _demoUser(email: email, name: name ?? 'Demo User');
+        _frontendSessionUser = user;
+        return Right(user);
+      }
     }
     try {
       final user = await _remoteDatasource.socialLogin(
@@ -97,7 +114,13 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     if (AppConstants.frontendOnlyMode) {
-      return Right(_demoUser(email: email, name: name, phone: phone));
+      try {
+        final user = await _remoteDatasource.register(name: name, phone: phone, email: email, password: password);
+        _frontendSessionUser = user;
+        return Right(user);
+      } on Exception {
+        return Right(_demoUser(email: email, name: name, phone: phone));
+      }
     }
     try {
       final user = await _remoteDatasource.register(name: name, phone: phone, email: email, password: password);
@@ -133,6 +156,13 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, UserEntity>> getCurrentUser() async {
     if (AppConstants.frontendOnlyMode) {
+      try {
+        final user = await _remoteDatasource.getCurrentUser();
+        _frontendSessionUser = user;
+        return Right(user);
+      } on Exception {
+        // Fallback to demo session in frontend-only mode.
+      }
       final user = _frontendSessionUser;
       if (user == null) {
         return const Left(AuthFailure(message: 'No active demo session'));
