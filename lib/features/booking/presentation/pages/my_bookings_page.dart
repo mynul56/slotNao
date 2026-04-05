@@ -36,49 +36,74 @@ class _MyBookingsPageState extends State<MyBookingsPage> with SingleTickerProvid
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => di.sl<BookingBloc>()..add(const BookingListRequested()),
-      child: Scaffold(
-        backgroundColor: AppTheme.dark900,
-        appBar: AppBar(
-          title: const Text('My Bookings'),
-          backgroundColor: AppTheme.dark800,
-          bottom: TabBar(
-            controller: _tabController,
-            indicatorColor: AppTheme.primaryGreen,
-            labelColor: AppTheme.primaryGreen,
-            unselectedLabelColor: AppTheme.neutralGrey,
-            tabs: const [
-              Tab(text: 'Upcoming'),
-              Tab(text: 'Completed'),
-              Tab(text: 'Cancelled'),
-            ],
+      child: BlocListener<BookingBloc, BookingState>(
+        listener: (context, state) {
+          if (state is BookingCancelled) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking cancelled successfully')));
+            context.read<BookingBloc>().add(const BookingListRequested());
+          }
+        },
+        child: Scaffold(
+          backgroundColor: AppTheme.dark900,
+          appBar: AppBar(
+            title: const Text('My Bookings'),
+            backgroundColor: AppTheme.dark800,
+            bottom: TabBar(
+              controller: _tabController,
+              indicatorColor: AppTheme.primaryGreen,
+              labelColor: AppTheme.primaryGreen,
+              unselectedLabelColor: AppTheme.neutralGrey,
+              tabs: const [
+                Tab(text: 'Upcoming'),
+                Tab(text: 'Completed'),
+                Tab(text: 'Cancelled'),
+              ],
+            ),
           ),
-        ),
-        body: BlocBuilder<BookingBloc, BookingState>(
-          builder: (context, state) {
-            if (state is BookingLoading) {
-              return const Center(child: CircularProgressIndicator(color: AppTheme.primaryGreen));
-            }
-            if (state is BookingListLoaded) {
-              return TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildList(state.bookings.where((b) => b.status == BookingStatus.confirmed).toList()),
-                  _buildList(state.bookings.where((b) => b.status == BookingStatus.completed).toList()),
-                  _buildList(state.bookings.where((b) => b.status == BookingStatus.cancelled).toList()),
-                ],
-              );
-            }
-            if (state is BookingError) {
-              return Center(child: Text(state.message));
-            }
-            return const SizedBox.shrink();
-          },
+          body: BlocBuilder<BookingBloc, BookingState>(
+            builder: (context, state) {
+              if (state is BookingLoading) {
+                return const Center(child: CircularProgressIndicator(color: AppTheme.primaryGreen));
+              }
+              if (state is BookingListLoaded) {
+                return TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildList(
+                      context,
+                      state.bookings
+                          .where((b) => b.status == BookingStatus.confirmed || b.status == BookingStatus.pending)
+                          .toList(),
+                    ),
+                    _buildList(context, state.bookings.where((b) => b.status == BookingStatus.completed).toList()),
+                    _buildList(context, state.bookings.where((b) => b.status == BookingStatus.cancelled).toList()),
+                  ],
+                );
+              }
+              if (state is BookingError) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(state.message, style: const TextStyle(color: AppTheme.neutralGrey)),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () => context.read<BookingBloc>().add(const BookingListRequested()),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildList(List<BookingEntity> bookings) {
+  Widget _buildList(BuildContext context, List<BookingEntity> bookings) {
     if (bookings.isEmpty) {
       return const Center(
         child: Column(
@@ -91,15 +116,19 @@ class _MyBookingsPageState extends State<MyBookingsPage> with SingleTickerProvid
         ),
       );
     }
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: bookings.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (context, i) => BookingCard(
-        booking: bookings[i],
-        onCancel: bookings[i].isCancellable
-            ? () => context.read<BookingBloc>().add(BookingCancelRequested(bookings[i].id))
-            : null,
+    return RefreshIndicator(
+      color: AppTheme.primaryGreen,
+      onRefresh: () async => context.read<BookingBloc>().add(const BookingListRequested()),
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: bookings.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        itemBuilder: (context, i) => BookingCard(
+          booking: bookings[i],
+          onCancel: bookings[i].isCancellable
+              ? () => context.read<BookingBloc>().add(BookingCancelRequested(bookings[i].id))
+              : null,
+        ),
       ),
     );
   }

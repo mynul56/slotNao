@@ -42,6 +42,12 @@ class _TurfDetailViewState extends State<_TurfDetailView> {
   DateTime _selectedDate = DateTime.now();
 
   @override
+  void initState() {
+    super.initState();
+    context.read<SlotCubit>().watchSlots(turfId: widget.turfId, date: _selectedDate);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.dark900,
@@ -52,7 +58,6 @@ class _TurfDetailViewState extends State<_TurfDetailView> {
           }
           if (state is TurfDetailLoaded) {
             final turf = state.turf;
-            context.read<SlotCubit>().watchSlots(turfId: widget.turfId, date: _selectedDate);
             return _buildDetail(context, turf);
           }
           if (state is TurfError) {

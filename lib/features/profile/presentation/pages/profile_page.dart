@@ -160,7 +160,7 @@ class _ProfileView extends StatelessWidget {
 
   Widget _buildMenuSection(BuildContext context) {
     final items = [
-      _MenuItem(icon: CupertinoIcons.calendar, title: 'My Bookings', onTap: () => context.push(AppRoutes.myBookings)),
+      _MenuItem(icon: CupertinoIcons.calendar, title: 'My Bookings', onTap: () => context.go(AppRoutes.schedule)),
       _MenuItem(icon: CupertinoIcons.bell_fill, title: 'Notifications', onTap: () {}),
       _MenuItem(icon: CupertinoIcons.question_circle, title: 'Help & Support', onTap: () {}),
       _MenuItem(icon: CupertinoIcons.shield_fill, title: 'Privacy Policy', onTap: () {}),
